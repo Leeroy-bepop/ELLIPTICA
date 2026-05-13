@@ -1,0 +1,1710 @@
+<!DOCTYPE html>
+
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Elliptica</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap');
+:root{
+  --bg:#03040a;--panel:#07090f;--grid:#0d1117;--bord:#1a2035;
+  --text:#c8d8f0;--dim:#3a4a6a;--cyan:#00f5c4;--purp:#a855f7;--gold:#f5a623;--red:#ff4466;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;background:var(--bg);}
+body{font-family:'Syne',sans-serif;color:var(--text);-webkit-font-smoothing:antialiased;touch-action:manipulation;user-select:none;-webkit-user-select:none;}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;pointer-events:none;transition:opacity .3s;}
+.screen.active{opacity:1;pointer-events:all;}
+#stars{position:fixed;inset:0;z-index:0;pointer-events:none;}
+
+/* HOME */
+#home{align-items:center;justify-content:center;padding:20px;z-index:1;}
+.logo-wrap{text-align:center;margin-bottom:22px;}
+#logoC{display:block;margin:0 auto 9px;}
+.game-title{font-size:2.2rem;font-weight:800;letter-spacing:-.02em;background:linear-gradient(135deg,var(–cyan),var(–purp));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;}
+.game-sub{font-family:‘Space Mono’,monospace;font-size:.62rem;letter-spacing:.14em;color:var(–dim);margin-top:4px;text-transform:uppercase;}
+.menu-btn{width:100%;max-width:320px;padding:14px 16px;border-radius:13px;border:1px solid var(–bord);background:var(–panel);color:var(–text);font-family:‘Syne’,sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;text-align:left;display:flex;align-items:center;gap:11px;margin-bottom:8px;transition:all .18s;-webkit-tap-highlight-color:transparent;}
+.menu-btn:active{transform:scale(.97);}
+.btn-icon{font-size:1.2rem;}.btn-info{flex:1;}.btn-name{display:block;}
+.btn-desc{font-size:.66rem;color:var(–dim);font-weight:400;margin-top:1px;}
+.btn-badge{font-family:‘Space Mono’,monospace;font-size:.56rem;padding:2px 6px;border-radius:5px;border:1px solid;}
+.m1{border-color:#00f5c433;}.m1 .btn-badge{color:var(–cyan);border-color:var(–cyan)55;}
+.m2{border-color:#a855f733;}.m2 .btn-badge{color:var(–purp);border-color:var(–purp)55;}
+.m3{border-color:#f5a62333;}.m3 .btn-badge{color:var(–gold);border-color:var(–gold)55;}
+.m4{border-color:#ff446633;}.m4 .btn-badge{color:var(–red);border-color:var(–red)55;}
+.score-display{font-family:‘Space Mono’,monospace;font-size:.68rem;color:var(–dim);text-align:center;margin-top:3px;}
+.score-display span{color:var(–cyan);}
+
+/* HEADER */
+.game-header{background:var(–panel);border-bottom:1px solid var(–bord);padding:10px 13px;display:flex;align-items:center;gap:9px;z-index:10;flex-shrink:0;}
+.back-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(–bord);background:transparent;color:var(–text);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;}
+.game-header h2{font-size:.85rem;font-weight:700;flex:1;}
+.score-pill{font-family:‘Space Mono’,monospace;font-size:.7rem;padding:3px 8px;border-radius:6px;background:var(–grid);border:1px solid var(–bord);color:var(–cyan);}
+
+/* TABS */
+.tab-bar{display:flex;background:var(–panel);border-bottom:1px solid var(–bord);flex-shrink:0;}
+.tab-btn{flex:1;padding:10px 6px;background:transparent;border:none;color:var(–dim);font-family:‘Syne’,sans-serif;font-size:.74rem;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;-webkit-tap-highlight-color:transparent;}
+.tab-btn.active{color:var(–cyan);border-bottom-color:var(–cyan);}
+.tab-content{display:none;flex:1;overflow-y:auto;flex-direction:column;}
+.tab-content.active{display:flex;}
+
+/* TOAST */
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(16px);background:var(–panel);border:1px solid var(–bord);border-radius:10px;padding:9px 16px;font-family:‘Space Mono’,monospace;font-size:.75rem;opacity:0;transition:all .26s;z-index:100;white-space:nowrap;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.good{border-color:var(–cyan)66;color:var(–cyan);}
+.toast.bad{border-color:var(–red)66;color:var(–red);}
+
+/* ══ MODE 1 ══ */
+#mode1 .game-body{display:flex;flex-direction:column;}
+.curve-canvas-wrap{flex-shrink:0;overflow:hidden;}
+#cvs1{display:block;width:100%;height:100%;}
+.ec-controls{background:var(–panel);border-top:1px solid var(–bord);padding:11px 13px;flex-shrink:0;}
+.ec-eq{font-family:‘Space Mono’,monospace;font-size:.76rem;color:var(–cyan);text-align:center;margin-bottom:8px;}
+.disc-pill{font-family:‘Space Mono’,monospace;font-size:.68rem;padding:3px 8px;border-radius:6px;background:var(–grid);border:1px solid var(–bord);cursor:pointer;display:inline-block;margin-bottom:7px;}
+.disc-panel{background:var(–grid);border-radius:9px;padding:10px 12px;margin-bottom:7px;font-family:‘Space Mono’,monospace;font-size:.7rem;line-height:1.75;display:none;}
+.disc-panel.open{display:block;}
+.disc-panel .hl{color:var(–gold);}
+.disc-panel .big{font-size:.88rem;font-weight:700;margin-top:4px;padding-top:5px;border-top:1px solid var(–bord);}
+.disc-panel .interp{margin-top:5px;font-size:.66rem;color:var(–dim);font-family:‘Syne’,sans-serif;line-height:1.35;}
+.slider-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.slider-row label{font-family:‘Space Mono’,monospace;font-size:.66rem;color:var(–dim);width:18px;text-align:right;flex-shrink:0;}
+.slider-row input[type=range]{flex:1;accent-color:var(–cyan);height:3px;cursor:pointer;}
+.slider-val{font-family:‘Space Mono’,monospace;font-size:.66rem;color:var(–text);width:24px;}
+.ratpts-bar{background:var(–grid);border-radius:7px;padding:6px 10px;margin-bottom:7px;font-family:‘Space Mono’,monospace;font-size:.66rem;display:none;}
+.ratpts-bar .lbl{color:var(–dim);}
+.ratpts-bar .pts{color:var(–gold);}
+.ec-task{background:var(–grid);border:1px solid var(–bord);border-radius:8px;padding:8px 11px;font-size:.74rem;line-height:1.45;margin-bottom:7px;}
+.ec-task strong{color:var(–gold);}
+.task-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.task-ctr{font-family:‘Space Mono’,monospace;font-size:.58rem;color:var(–dim);}
+.task-stars{display:flex;gap:2px;font-size:.76rem;}
+.ec-btn-row{display:flex;gap:6px;}
+.ec-btn{flex:1;padding:9px 6px;border-radius:8px;border:1px solid var(–bord);background:var(–grid);font-family:‘Syne’,sans-serif;font-size:.76rem;font-weight:600;color:var(–text);cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+.ec-btn:active{transform:scale(.96);}
+.ec-btn.primary{background:var(–cyan)22;border-color:var(–cyan)55;color:var(–cyan);}
+
+/* ══ MODE 2 ══ */
+.sandbox-canvas-wrap{position:relative;flex-shrink:0;background:var(–panel);border-bottom:1px solid var(–bord);}
+.sandbox-step{position:absolute;top:6px;left:6px;font-family:‘Space Mono’,monospace;font-size:.62rem;color:var(–cyan);background:rgba(0,0,0,.65);padding:3px 7px;border-radius:5px;pointer-events:none;}
+.sandbox-controls{padding:10px 12px;display:flex;flex-direction:column;gap:7px;background:var(–panel);flex-shrink:0;}
+.sb-eq{font-family:‘Space Mono’,monospace;font-size:.75rem;color:var(–cyan);text-align:center;}
+.sb-slider-row{display:flex;align-items:center;gap:8px;}
+.sb-lbl{font-family:‘Space Mono’,monospace;font-size:.68rem;color:var(–dim);width:12px;text-align:right;flex-shrink:0;}
+.sb-slider-row input[type=range]{flex:1;accent-color:var(–cyan);height:3px;cursor:pointer;}
+.sb-val{font-family:‘Space Mono’,monospace;font-size:.66rem;color:var(–text);width:26px;}
+.sb-result-row{display:flex;align-items:center;gap:5px;background:var(–grid);border-radius:9px;padding:8px 10px;}
+.sb-pt{flex:1;text-align:center;}
+.sb-pt-name{display:block;font-family:‘Space Mono’,monospace;font-size:.56rem;color:var(–dim);margin-bottom:1px;}
+.sb-pt-val{font-family:‘Space Mono’,monospace;font-size:.68rem;font-weight:700;}
+.sb-p .sb-pt-val{color:var(–cyan);}.sb-q .sb-pt-val{color:var(–purp);}.sb-pq .sb-pt-val{color:var(–gold);}
+.sb-plus,.sb-equals{color:var(–dim);font-size:.9rem;flex-shrink:0;}
+.sb-anim-row{display:flex;align-items:center;gap:6px;}
+.sb-btn{padding:8px 11px;border-radius:8px;border:1px solid var(–bord);background:var(–grid);color:var(–text);font-family:‘Syne’,sans-serif;font-size:.76rem;font-weight:600;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+.sb-btn:active{transform:scale(.95);}
+.sb-btn.primary{background:var(–cyan)20;border-color:var(–cyan)55;color:var(–cyan);}
+.sb-step-name{flex:1;text-align:center;font-family:‘Space Mono’,monospace;font-size:.65rem;color:var(–dim);}
+#tc-puzzle{overflow-y:auto;}
+.puzzle-curve{flex-shrink:0;background:var(–panel);border-bottom:1px solid var(–bord);position:relative;}
+#cvs2{display:block;width:100%;}
+.geo-legend{display:flex;flex-wrap:wrap;gap:7px;padding:6px 11px;border-top:1px solid var(–bord);font-size:.63rem;font-family:‘Space Mono’,monospace;}
+.leg-item{display:flex;align-items:center;gap:4px;color:var(–dim);}
+.leg-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.leg-line{width:16px;border-top:2px dashed;flex-shrink:0;}
+.puzzle-info{padding:10px 12px;flex-shrink:0;}
+.progress-bar{height:3px;background:var(–grid);border-radius:2px;overflow:hidden;margin-bottom:8px;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(–cyan),var(–purp));border-radius:2px;transition:width .4s ease;}
+.puzzle-lives{display:flex;gap:4px;}
+.heart{font-size:.9rem;transition:all .2s;}.heart.lost{opacity:.2;transform:scale(.8);}
+.point-display{display:grid;grid-template-columns:1fr auto 1fr;gap:6px;align-items:center;margin-bottom:8px;}
+.pt-box{background:var(–grid);border-radius:8px;padding:8px;text-align:center;}
+.pt-name{font-family:‘Space Mono’,monospace;font-size:.58rem;color:var(–dim);margin-bottom:2px;}
+.pt-val{font-family:‘Space Mono’,monospace;font-size:.78rem;font-weight:700;}
+.pt-plus{font-size:1rem;color:var(–dim);text-align:center;}
+.result-box{background:var(–grid);border-radius:8px;padding:8px;text-align:center;border:1px solid var(–bord);margin-bottom:8px;}
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.opt-btn{padding:10px 6px;border-radius:8px;border:1.5px solid var(–bord);background:var(–grid);font-family:‘Space Mono’,monospace;font-size:.76rem;color:var(–text);cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+.opt-btn:active{transform:scale(.95);}
+.opt-btn.correct{border-color:var(–cyan);background:var(–cyan)20;color:var(–cyan);}
+.opt-btn.wrong{border-color:var(–red);background:var(–red)15;color:var(–red);}
+.result-overlay{position:absolute;inset:0;z-index:50;background:rgba(3,4,10,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;padding:26px;opacity:0;pointer-events:none;transition:opacity .3s;}
+.result-overlay.show{opacity:1;pointer-events:all;}
+.result-emoji{font-size:2.6rem;}.result-title{font-size:1.2rem;font-weight:800;color:var(–cyan);}
+.result-score{font-family:‘Space Mono’,monospace;font-size:1.8rem;color:var(–gold);font-weight:700;}
+.result-sub{font-family:‘Space Mono’,monospace;font-size:.7rem;color:var(–dim);text-align:center;line-height:1.6;}
+.res-btn{padding:12px 24px;border-radius:10px;border:1px solid var(–cyan)44;background:var(–cyan)15;color:var(–cyan);font-family:‘Syne’,sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+
+/* ══ MODE 3 — COURS ══ */
+#mode3 .game-body{overflow-y:auto;}
+.cours-home{padding:14px;display:flex;flex-direction:column;gap:9px;}
+.cours-title{font-size:.68rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(–dim);margin-bottom:3px;}
+.level-card{background:var(–panel);border:1.5px solid var(–bord);border-radius:13px;padding:14px 13px;cursor:pointer;display:flex;align-items:center;gap:11px;transition:all .18s;-webkit-tap-highlight-color:transparent;}
+.level-card:active{transform:scale(.97);}
+.level-card.unlocked{border-color:var(–cyan)44;}
+.level-card.locked{opacity:.45;cursor:not-allowed;}
+.level-card.done{border-color:var(–gold)44;}
+.level-num{width:38px;height:38px;border-radius:50%;border:2px solid var(–cyan)44;display:flex;align-items:center;justify-content:center;font-family:‘Space Mono’,monospace;font-size:.88rem;font-weight:700;color:var(–cyan);flex-shrink:0;}
+.level-num.done{background:var(–gold)22;border-color:var(–gold);color:var(–gold);}
+.level-info{flex:1;}
+.level-name{font-size:.88rem;font-weight:700;margin-bottom:2px;}
+.level-desc{font-size:.66rem;color:var(–dim);line-height:1.35;}
+.level-badge{font-family:‘Space Mono’,monospace;font-size:.56rem;padding:2px 6px;border-radius:4px;}
+.level-badge.new{color:var(–gold);background:var(–gold)15;border:1px solid var(–gold)44;}
+.level-badge.done{color:var(–cyan);background:var(–cyan)15;border:1px solid var(–cyan)44;}
+.level-badge.lock{color:var(–dim);background:var(–grid);border:1px solid var(–bord);}
+
+/* LESSON SHELL */
+.lesson{display:none;flex-direction:column;height:100%;}
+.lesson.active{display:flex;}
+.lesson-header{background:var(–panel);border-bottom:1px solid var(–bord);padding:10px 13px;display:flex;align-items:center;gap:9px;flex-shrink:0;}
+.lesson-back{width:30px;height:30px;border-radius:7px;border:1px solid var(–bord);background:transparent;color:var(–text);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.86rem;-webkit-tap-highlight-color:transparent;}
+.lesson-title{font-size:.82rem;font-weight:700;flex:1;}
+.step-pills{display:flex;gap:4px;justify-content:center;padding:8px 0 2px;flex-shrink:0;}
+.step-pill{height:4px;border-radius:2px;background:var(–bord);transition:background .3s;flex:1;max-width:32px;}
+.step-pill.done{background:var(–cyan);}
+.step-pill.active{background:var(–gold);}
+.lesson-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;}
+.lesson-nav{display:flex;gap:7px;padding:11px 13px;background:var(–panel);border-top:1px solid var(–bord);flex-shrink:0;}
+.nav-btn{flex:1;padding:11px 7px;border-radius:9px;border:1.5px solid var(–bord);background:var(–grid);font-family:‘Syne’,sans-serif;font-size:.8rem;font-weight:600;color:var(–text);cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+.nav-btn:active{transform:scale(.97);}
+.nav-btn.primary{background:var(–cyan)20;border-color:var(–cyan)55;color:var(–cyan);}
+.nav-btn.success{background:var(–gold)20;border-color:var(–gold)55;color:var(–gold);}
+
+/* STEP CARDS */
+.step-card{background:var(–panel);border:1px solid var(–bord);border-radius:13px;overflow:hidden;}
+.step-card-head{padding:11px 13px 7px;border-bottom:1px solid var(–bord);}
+.step-card-num{font-family:‘Space Mono’,monospace;font-size:.58rem;color:var(–dim);margin-bottom:2px;}
+.step-card-title{font-size:.92rem;font-weight:700;color:var(–cyan);}
+.step-card-body{padding:11px 13px;font-size:.82rem;line-height:1.7;color:var(–text);}
+.step-card-body .formula{
+background:var(–grid);border-radius:10px;
+padding:12px 14px;margin:9px 0;
+border-left:3px solid var(–gold);
+overflow-x:auto;
+}
+.step-card-body .formula .katex{font-size:.95rem;color:var(–gold);}
+.step-card-body .formula .katex-display{margin:4px 0;}
+.step-card-body .formula .katex-display .katex{font-size:1.05rem;}
+/* Fallback for inline mono formulas still used in some places */
+.step-card-body .formula-mono{font-family:‘Space Mono’,monospace;background:var(–grid);border-radius:7px;padding:8px 11px;margin:7px 0;font-size:.73rem;color:var(–gold);line-height:1.7;border-left:3px solid var(–gold);}
+.step-card-body .note{font-size:.72rem;color:var(–dim);margin-top:6px;font-style:italic;line-height:1.45;padding:6px 10px;background:var(–grid);border-radius:6px;}
+.step-card-body strong{color:var(–cyan);}
+.step-card-body ul{margin:7px 0 7px 16px;font-size:.8rem;line-height:1.9;}
+.step-card-body .ex{background:var(–grid);border-radius:9px;padding:10px 12px;margin:8px 0;font-size:.74rem;line-height:1.65;border-left:3px solid var(–purp);}
+.step-card-body .ex .ex-title{color:var(–purp);font-weight:700;margin-bottom:4px;font-size:.78rem;}
+/* KaTeX global overrides for dark theme */
+.katex{color:inherit;}
+.katex .mord,.katex .mbin,.katex .mrel,.katex .mop{color:inherit;}
+/* Inline math spans */
+.km{display:inline;}
+.km .katex{font-size:.9em;}
+
+/* INTERACT ZONES */
+.interact-zone{background:var(–grid);border-top:1px solid var(–bord);padding:12px 13px;}
+.iz-title{font-size:.62rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(–dim);margin-bottom:9px;}
+.p-selector{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:9px;}
+.p-btn{padding:6px 12px;border-radius:7px;border:1.5px solid var(–bord);background:var(–panel);font-family:‘Space Mono’,monospace;font-size:.75rem;color:var(–dim);cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;}
+.p-btn:active{transform:scale(.95);}
+.p-btn.sel{border-color:var(–cyan);color:var(–cyan);background:var(–cyan)15;}
+.param-row{display:flex;align-items:center;gap:7px;margin-bottom:5px;}
+.param-lbl{font-family:‘Space Mono’,monospace;font-size:.68rem;color:var(–dim);width:13px;text-align:right;flex-shrink:0;}
+.param-row input[type=range]{flex:1;accent-color:var(–purp);height:3px;cursor:pointer;}
+.param-val{font-family:‘Space Mono’,monospace;font-size:.68rem;color:var(–text);width:24px;}
+.pts-table-wrap{overflow-x:auto;margin-top:7px;}
+table.pts-table{width:100%;border-collapse:separate;border-spacing:3px;font-family:‘Space Mono’,monospace;font-size:.68rem;}
+table.pts-table th{background:var(–bord);color:var(–dim);padding:4px 3px;border-radius:4px;font-weight:400;text-align:center;}
+table.pts-table td{background:var(–panel);padding:5px 3px;border-radius:4px;text-align:center;}
+table.pts-table td.on{color:var(–cyan);background:var(–cyan)15;font-weight:700;}
+table.pts-table td.zero{color:var(–gold);background:var(–gold)15;font-weight:700;}
+table.pts-table td.off{color:var(–bord);}
+#cvs3{display:block;width:100%;border-radius:9px;margin-top:7px;}
+
+/* ── LESSON 2 specific ── */
+.l2-pt-row{display:flex;gap:7px;margin-bottom:9px;}
+.l2-pt-box{flex:1;background:var(–panel);border-radius:9px;padding:9px 10px;text-align:center;border:1.5px solid var(–bord);}
+.l2-pt-box.sel{border-color:var(–purp);}
+.l2-pt-box .pt-label{font-family:‘Space Mono’,monospace;font-size:.6rem;color:var(–dim);margin-bottom:3px;}
+.l2-pt-box .pt-coord{font-family:‘Space Mono’,monospace;font-size:.82rem;font-weight:700;color:var(–cyan);margin-bottom:5px;}
+.l2-pt-box .pt-pick{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;}
+.l2-pick-btn{padding:4px 8px;border-radius:6px;border:1px solid var(–bord);background:var(–grid);font-family:‘Space Mono’,monospace;font-size:.66rem;color:var(–dim);cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.l2-pick-btn:active{transform:scale(.93);}
+.l2-pick-btn.sel{border-color:var(–purp);color:var(–purp);background:var(–purp)15;}
+.compute-box{background:var(–panel);border-radius:9px;padding:10px 12px;font-family:‘Space Mono’,monospace;font-size:.73rem;line-height:1.9;border:1px solid var(–bord);margin-top:8px;}
+.compute-box .cb-step{color:var(–dim);}
+.compute-box .cb-val{color:var(–gold);}
+.compute-box .cb-res{color:var(–cyan);font-weight:700;}
+.compute-box .cb-err{color:var(–red);}
+.add-result-box{background:var(–cyan)15;border:1px solid var(–cyan)44;border-radius:9px;padding:10px 12px;text-align:center;margin-top:8px;}
+.add-result-box .ar-label{font-family:‘Space Mono’,monospace;font-size:.62rem;color:var(–dim);margin-bottom:3px;}
+.add-result-box .ar-val{font-family:‘Space Mono’,monospace;font-size:1rem;font-weight:700;color:var(–cyan);}
+
+/* ══ MODE 4 — ORACLE ══ */
+#mode4 .game-body{overflow-y:auto;padding:13px;display:flex;flex-direction:column;gap:9px;}
+.curve-picker{background:var(–panel);border:1px solid var(–bord);border-radius:12px;padding:12px;}
+.curve-picker h3{font-size:.62rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(–dim);margin-bottom:8px;}
+.curve-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.curve-card{border:1.5px solid var(–bord);background:var(–grid);border-radius:8px;padding:9px 8px;cursor:pointer;transition:all .18s;-webkit-tap-highlight-color:transparent;}
+.curve-card:active{transform:scale(.96);}
+.curve-card.selected{border-color:var(–red);background:color-mix(in srgb,var(–red) 10%,var(–grid));}
+.cc-name{font-family:‘Space Mono’,monospace;font-size:.68rem;color:var(–red);font-weight:700;margin-bottom:2px;}
+.cc-eq{font-family:‘Space Mono’,monospace;font-size:.6rem;color:var(–text);margin-bottom:3px;line-height:1.3;}
+.cc-tag{font-size:.56rem;padding:1px 4px;border-radius:3px;background:var(–bord);color:var(–dim);font-family:‘Space Mono’,monospace;margin-right:2px;}
+.modform-output{background:var(–panel);border:1px solid var(–bord);border-radius:12px;padding:12px;}
+.modform-output h3{font-size:.62rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(–dim);margin-bottom:9px;}
+.mf-empty{text-align:center;padding:16px 0;color:var(–dim);font-size:.76rem;font-style:italic;}
+#m4canvasWrap{background:var(–panel);border:1px solid var(–bord);border-radius:12px;overflow:hidden;display:none;}
+#cvs4{display:block;width:100%;}
+.mf-section{margin-bottom:12px;}
+.mf-section-title{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(–dim);margin-bottom:5px;font-family:‘Space Mono’,monospace;}
+.mf-identity{background:var(–grid);border-radius:8px;padding:9px 11px;margin-bottom:8px;position:relative;}
+.mf-identity.tappable{cursor:pointer;}
+.mf-label{font-family:‘Space Mono’,monospace;font-size:.58rem;color:var(–dim);margin-bottom:2px;}
+.mf-val{font-family:‘Space Mono’,monospace;font-size:.85rem;font-weight:700;color:var(–cyan);}
+.tap-hint{position:absolute;top:7px;right:9px;font-family:‘Space Mono’,monospace;font-size:.54rem;color:var(–dim);}
+.form-info-panel{max-height:0;overflow:hidden;transition:max-height .4s cubic-bezier(.4,0,.2,1),opacity .35s;opacity:0;}
+.form-info-panel.open{max-height:500px;opacity:1;}
+.form-info-body{margin-top:8px;padding-top:8px;border-top:1px solid var(–bord);}
+.form-info-row{display:flex;gap:8px;align-items:flex-start;padding:5px 0;border-bottom:1px solid var(–bord);font-size:.73rem;line-height:1.4;}
+.form-info-row:last-child{border-bottom:none;}
+.fi-icon{font-size:.82rem;flex-shrink:0;width:17px;text-align:center;margin-top:1px;}
+.fi-text{flex:1;}
+.fi-text strong{color:var(–cyan);display:block;margin-bottom:1px;font-size:.65rem;}
+.fi-text span{color:var(–text);}
+.mf-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;}
+.mf-box{background:var(–grid);border-radius:7px;padding:8px;text-align:center;}
+.qexp-wrap{background:var(–grid);border-radius:8px;padding:10px 12px;font-family:‘Space Mono’,monospace;font-size:.68rem;line-height:1.8;overflow-x:auto;white-space:nowrap;border:1px solid var(–bord);}
+.qterm-pos{color:var(–cyan);}.qterm-neg{color:var(–red);}.qterm-q{color:var(–purp);}.qexp-label{color:var(–dim);}
+.ap-table-wrap{overflow-x:auto;}
+table.ap-table{width:100%;border-collapse:separate;border-spacing:3px;font-family:‘Space Mono’,monospace;font-size:.66rem;}
+table.ap-table th{background:var(–bord);color:var(–dim);padding:4px 3px;border-radius:4px;font-weight:400;text-align:center;}
+table.ap-table td{background:var(–grid);padding:5px 3px;border-radius:4px;text-align:center;font-weight:600;}
+table.ap-table td.ap-pos{color:var(–cyan);}table.ap-table td.ap-neg{color:var(–red);}
+table.ap-table td.ap-zero{color:var(–dim);}table.ap-table td.ap-bad{color:var(–gold);}
+.mf-footnote{font-family:‘Space Mono’,monospace;font-size:.56rem;color:var(–dim);margin-top:4px;}
+.mf-formula-block{background:var(–grid);border-radius:8px;padding:9px 12px;margin-bottom:8px;font-family:‘Space Mono’,monospace;font-size:.7rem;line-height:1.7;}
+.mf-formula-comment{color:var(–dim);font-size:.63rem;margin-bottom:3px;}
+.lf-btn{width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid var(–purp)44;background:var(–purp)12;color:var(–purp);font-family:‘Syne’,sans-serif;font-size:.84rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .2s;-webkit-tap-highlight-color:transparent;}
+.lf-btn:active{transform:scale(.97);}
+.lf-btn.open{background:var(–purp)22;border-color:var(–purp)88;}
+.lf-text-block{background:var(–grid);border-radius:10px;border-left:3px solid var(–purp);padding:12px 14px;margin-top:8px;}
+.lf-text-header{font-family:‘Space Mono’,monospace;font-size:.68rem;color:var(–purp);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(–bord);line-height:1.5;}
+.lf-text-block p{font-size:.8rem;line-height:1.65;color:var(–text);margin:0;}
+.story-card{background:var(–grid);border-radius:8px;padding:10px 12px;font-size:.76rem;line-height:1.6;color:var(–text);border-left:3px solid var(–gold);}
+table.pts-table td.ap-pos-l{color:var(–cyan);background:var(–cyan)15;font-weight:700;}
+table.pts-table td.ap-neg-l{color:var(–red);background:var(–red)12;font-weight:700;}
+table.pts-table td.ap-zero-l{color:var(–gold);background:var(–gold)12;font-weight:700;}
+.intro-card{border-color:var(–gold)44;background:linear-gradient(135deg,var(–gold)08,var(–panel));}
+.intro-card:hover{border-color:var(–gold)88;}
+
+/* ── COURS WELCOME BANNER ── */
+.cours-welcome{
+background:linear-gradient(135deg,var(–purp)15,var(–cyan)06);
+border:1px solid var(–purp)44;
+border-radius:14px;
+padding:16px 15px 14px;
+margin-bottom:2px;
+animation:slideUp .4s ease both;
+}
+.cw-icon{font-size:1.5rem;margin-bottom:7px;}
+.cw-title{font-size:.98rem;font-weight:700;color:var(–cyan);margin-bottom:8px;line-height:1.3;}
+.cw-body{font-size:.78rem;line-height:1.65;color:var(–text);margin-bottom:10px;}
+.cw-sep{border:none;border-top:1px solid var(–bord);margin:10px 0;}
+.cw-theorems{display:flex;flex-direction:column;gap:7px;margin-bottom:10px;}
+.cw-thm{display:flex;align-items:flex-start;gap:9px;background:var(–grid);border-radius:9px;padding:9px 11px;}
+.cw-thm-icon{font-size:.85rem;flex-shrink:0;margin-top:2px;}
+.cw-thm strong{color:var(–gold);display:block;font-size:.76rem;margin-bottom:2px;}
+.cw-thm span{color:var(–dim);font-size:.72rem;line-height:1.4;}
+.cw-foot{font-family:‘Space Mono’,monospace;font-size:.64rem;color:var(–dim);text-align:center;letter-spacing:.04em;}
+
+@keyframes slideUp{from{opacity:0;transform:translateY(9px);}to{opacity:1;transform:translateY(0);}}
+</style>
+
+</head>
+<body>
+<canvas id="stars" aria-hidden="true"></canvas>
+<div class="toast" id="toast"></div>
+
+<!-- HOME -->
+
+<div class="screen active" id="home">
+  <div class="logo-wrap">
+    <canvas id="logoC" width="64" height="64"></canvas>
+    <div class="game-title">ELLIPTICA</div>
+    <div class="game-sub">Courbes Elliptiques &amp; Formes Modulaires</div>
+  </div>
+  <button class="menu-btn m1" onclick="goto('mode1')"><span class="btn-icon">📐</span><span class="btn-info"><span class="btn-name">Explorateur de Courbes</span><span class="btn-desc">Modifie a,b et observe y²=x³+ax+b</span></span><span class="btn-badge">LIBRE</span></button>
+  <button class="menu-btn m2" onclick="goto('mode2')"><span class="btn-icon">➕</span><span class="btn-info"><span class="btn-name">Addition de Points</span><span class="btn-desc">Bac à sable tactile + puzzle mod p</span></span><span class="btn-badge">PUZZLE</span></button>
+  <button class="menu-btn m3" onclick="goto('mode3')"><span class="btn-icon">📚</span><span class="btn-info"><span class="btn-name">Cours</span><span class="btn-desc">Apprends pas à pas avec des niveaux</span></span><span class="btn-badge">COURS</span></button>
+  <button class="menu-btn m4" onclick="goto('mode4')"><span class="btn-icon">🔮</span><span class="btn-info"><span class="btn-name">Oracle Modulaire</span><span class="btn-desc">Courbe → Forme modulaire associée</span></span><span class="btn-badge">ORACLE</span></button>
+  <div class="score-display">Meilleur score puzzle : <span id="bestScore">0</span> pts</div>
+</div>
+
+<!-- MODE 1 -->
+
+<div class="screen" id="mode1">
+  <div class="game-header"><button class="back-btn" onclick="goto('home')">←</button><h2>🔭 Explorateur</h2><div class="score-pill" id="m1disc" onclick="toggleDiscPanel()" style="cursor:pointer">Δ=…</div></div>
+  <div class="game-body">
+    <div class="curve-canvas-wrap"><canvas id="cvs1"></canvas></div>
+    <div class="ec-controls">
+      <div class="ec-eq" id="ecEq">y² = x³ + ax + b</div>
+      <div class="disc-pill" onclick="toggleDiscPanel()">📐 Calcul du discriminant ▾</div>
+      <div class="disc-panel" id="discPanel"></div>
+      <div class="slider-row"><label>a</label><input type="range" id="slA" min="-5" max="5" step=".5" value="-1" oninput="onSlider()"><span class="slider-val" id="valA">-1</span></div>
+      <div class="slider-row"><label>b</label><input type="range" id="slB" min="-5" max="5" step=".5" value="1" oninput="onSlider()"><span class="slider-val" id="valB">1</span></div>
+      <div class="ratpts-bar" id="ratptsBar"><span class="lbl">ℚ-pts : </span><span class="pts" id="ratptsList"></span></div>
+      <div class="task-row"><span class="task-ctr" id="taskCtr">Défi 1/10</span><div class="task-stars" id="taskStars"></div></div>
+      <div class="ec-task" id="ecTask"></div>
+      <div class="ec-btn-row"><button class="ec-btn" onclick="randomCurve()">🎲</button><button class="ec-btn primary" onclick="checkTask()">✓ Vérifier</button><button class="ec-btn" onclick="nextTask()">→</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODE 2 -->
+
+<div class="screen" id="mode2">
+  <div class="game-header"><button class="back-btn" onclick="goto('home')">←</button><h2>➕ Addition</h2><div class="score-pill" id="m2score">0 pts</div></div>
+  <div class="tab-bar">
+    <button class="tab-btn active" id="tab-sandbox" onclick="switchTab('sandbox')">🎮 Bac à sable</button>
+    <button class="tab-btn" id="tab-puzzle" onclick="switchTab('puzzle')">🧩 Puzzle</button>
+  </div>
+  <div class="tab-content active" id="tc-sandbox">
+    <div class="sandbox-canvas-wrap"><canvas id="cvsSandbox" style="display:block;width:100%;touch-action:none;"></canvas><div class="sandbox-step" id="sandboxStep">① Glisse P ou Q</div></div>
+    <div class="sandbox-controls">
+      <div class="sb-eq" id="sbEq">y² = x³ − x + 1</div>
+      <div class="sb-slider-row"><span class="sb-lbl">a</span><input type="range" id="sbA" min="-4" max="4" step=".25" value="-1" oninput="onSbSlider()"><span class="sb-val" id="sbAval">-1</span></div>
+      <div class="sb-slider-row"><span class="sb-lbl">b</span><input type="range" id="sbB" min="-4" max="4" step=".25" value="1" oninput="onSbSlider()"><span class="sb-val" id="sbBval">1</span></div>
+      <div class="sb-result-row">
+        <div class="sb-pt sb-p"><span class="sb-pt-name">P</span><span class="sb-pt-val" id="sbPval">…</span></div>
+        <div class="sb-plus">+</div>
+        <div class="sb-pt sb-q"><span class="sb-pt-name">Q</span><span class="sb-pt-val" id="sbQval">…</span></div>
+        <div class="sb-equals">=</div>
+        <div class="sb-pt sb-pq"><span class="sb-pt-name">P+Q</span><span class="sb-pt-val" id="sbPQval">…</span></div>
+      </div>
+      <div class="sb-anim-row"><button class="sb-btn" onclick="sbAnimStep(-1)">⟵</button><span class="sb-step-name" id="sbStepName">Points</span><button class="sb-btn primary" onclick="sbAnimStep(1)">Étape →</button><button class="sb-btn" onclick="sbReset()">↺</button></div>
+    </div>
+  </div>
+  <div class="tab-content" id="tc-puzzle">
+    <div style="position:relative;">
+      <div class="result-overlay" id="m2result"><div class="result-emoji" id="resEmoji">🏆</div><div class="result-title" id="resTitle">Bravo !</div><div class="result-score" id="resScore">0</div><div class="result-sub" id="resSub"></div><button class="res-btn" onclick="restartM2()">Rejouer</button><button class="res-btn" style="background:transparent;border-color:var(--bord);color:var(--dim);margin-top:4px" onclick="goto('home')">Menu</button></div>
+    </div>
+    <div class="puzzle-curve"><canvas id="cvs2"></canvas><div class="geo-legend"><div class="leg-item"><span class="leg-dot" style="background:#00f5c4"></span>P</div><div class="leg-item"><span class="leg-dot" style="background:#a855f7"></span>Q</div><div class="leg-item"><span class="leg-dot" style="background:#f5a623"></span>P+Q</div><div class="leg-item"><span class="leg-line" style="border-top-color:#f5a623"></span>droite</div><div class="leg-item"><span class="leg-line" style="border-top-color:#ff4466"></span><span style="color:#ff4466">réfl.</span></div></div></div>
+    <div class="puzzle-info">
+      <div class="progress-bar"><div class="progress-fill" id="m2prog" style="width:0%"></div></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><h3 style="font-size:.8rem;margin:0">Calcule P + Q = ?</h3><div class="puzzle-lives" id="lives"></div></div>
+      <div class="point-display"><div class="pt-box"><div class="pt-name">P</div><div class="pt-val" id="ptP" style="color:var(--cyan)">…</div></div><div class="pt-plus">+</div><div class="pt-box"><div class="pt-name">Q</div><div class="pt-val" id="ptQ" style="color:var(--purp)">…</div></div></div>
+      <div class="result-box"><div class="pt-name">Courbe : <span id="m2curve" style="color:var(--gold)"></span></div></div>
+      <div class="options-grid" id="opts"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODE 3 — COURS -->
+
+<div class="screen" id="mode3">
+  <div class="game-header"><button class="back-btn" onclick="goto('home')">←</button><h2>📚 Cours</h2></div>
+  <div class="game-body">
+    <div class="cours-home" id="coursHome">
+
+```
+  <!-- WELCOME BANNER -->
+  <div class="cours-welcome" id="coursWelcome">
+    <div class="cw-icon">📐</div>
+    <div class="cw-title">Bienvenue dans la section Cours</div>
+    <div class="cw-body">
+      Le but de cette section est d'introduire les <strong>bases de la théorie des courbes elliptiques</strong> et les outils nécessaires à la compréhension des grands théorèmes de cette branche des mathématiques.
+    </div>
+    <hr class="cw-sep">
+    <div class="cw-theorems">
+      <div class="cw-thm">
+        <span class="cw-thm-icon">🏛️</span>
+        <div>
+          <strong>Théorème de modularité de Wiles</strong>
+          <span>Toute courbe elliptique sur ℚ est modulaire — la clé de la preuve du dernier théorème de Fermat (1995).</span>
+        </div>
+      </div>
+      <div class="cw-thm">
+        <span class="cw-thm-icon">∞</span>
+        <div>
+          <strong>Dernier théorème de Fermat</strong>
+          <span>L'équation xⁿ + yⁿ = zⁿ n'a aucune solution entière non triviale pour n ≥ 3. Prouvé par Andrew Wiles en 1995.</span>
+        </div>
+      </div>
+      <div class="cw-thm">
+        <span class="cw-thm-icon">📊</span>
+        <div>
+          <strong>Théorème de densité de Chebotarev</strong>
+          <span>Décrit la distribution des Frobenius dans les extensions galoisiennes — généralise le théorème des nombres premiers.</span>
+        </div>
+      </div>
+      <div class="cw-thm">
+        <span class="cw-thm-icon">💎</span>
+        <div>
+          <strong>Conjecture de Birch et Swinnerton-Dyer</strong>
+          <span>Relie le rang d'une courbe elliptique à l'ordre du zéro de sa fonction L en s = 1. Problème du millénaire (1 million $).</span>
+        </div>
+      </div>
+    </div>
+    <hr class="cw-sep">
+    <div class="cw-foot">↓ Commence par l'Introduction, puis suis les niveaux dans l'ordre</div>
+  </div>
+
+  <div class="cours-title">Niveaux disponibles</div>
+
+  <!-- INTRO CARD -->
+  <div class="level-card unlocked intro-card" onclick="openLesson(0)">
+    <div class="level-num" style="border-color:var(--gold)44;color:var(--gold)">✦</div>
+    <div class="level-info"><div class="level-name" style="color:var(--gold)">Introduction</div><div class="level-desc">Qu'est-ce qu'une courbe elliptique ? Qu'est-ce que 𝔽ₚ ? Exemples concrets.</div></div>
+    <span class="level-badge" style="color:var(--gold);background:var(--gold)15;border:1px solid var(--gold)44">LIRE</span>
+  </div>
+
+  <div class="level-card unlocked" id="lcard1" onclick="openLesson(1)">
+    <div class="level-num" id="lnum1">1</div>
+    <div class="level-info"><div class="level-name">Points mod p</div><div class="level-desc">Calcule les points d'une courbe sur 𝔽ₚ. Paramètre ta courbe et choisis p.</div></div>
+    <span class="level-badge new" id="lbadge1">NOUVEAU</span>
+  </div>
+  <div class="level-card" id="lcard2" onclick="openLesson(2)">
+    <div class="level-num" id="lnum2">2</div>
+    <div class="level-info"><div class="level-name">Coefficients aₚ</div><div class="level-desc">Définition, calcul et rôle des aₚ. Le lien avec le comptage de points sur 𝔽ₚ.</div></div>
+    <span class="level-badge lock" id="lbadge2">🔒 Niveau 1 requis</span>
+  </div>
+  <div class="level-card locked" id="lcard3" onclick="openLesson(3)">
+    <div class="level-num" id="lnum3">3</div>
+    <div class="level-info"><div class="level-name">Fonctions L elliptiques</div><div class="level-desc">Définition, calcul, théorèmes et conjectures. Le cœur de la théorie moderne.</div></div>
+    <span class="level-badge lock" id="lbadge3">🔒 Niveau 2 requis</span>
+  </div>
+  <div class="level-card locked">
+    <div class="level-num">4</div>
+    <div class="level-info"><div class="level-name">Théorème de Hasse</div><div class="level-desc">Pourquoi |#E(𝔽ₚ)−(p+1)| ≤ 2√p ? Vérife sur tes exemples.</div></div>
+    <span class="level-badge lock">🔒 Niveau 3 requis</span>
+  </div>
+</div>
+
+<!-- LESSON 0 — INTRODUCTION -->
+<div class="lesson" id="lesson0">
+  <div class="lesson-header"><button class="lesson-back" onclick="closeLesson()">←</button><div class="lesson-title">Introduction · Concepts fondamentaux</div></div>
+  <div style="padding:8px 13px 0;flex-shrink:0;"><div class="step-pills" id="s0pills"></div></div>
+  <div class="lesson-body" id="s0body"></div>
+  <div class="lesson-nav"><button class="nav-btn" id="s0prev" onclick="lessonNav(0,-1)">← Précédent</button><button class="nav-btn primary" id="s0next" onclick="lessonNav(0,1)">Suivant →</button></div>
+</div>
+<div class="lesson" id="lesson1">
+  <div class="lesson-header"><button class="lesson-back" onclick="closeLesson()">←</button><div class="lesson-title">Niveau 1 · Points mod p</div></div>
+  <div style="padding:8px 13px 0;flex-shrink:0;"><div class="step-pills" id="s1pills"></div></div>
+  <div class="lesson-body" id="s1body"></div>
+  <div class="lesson-nav"><button class="nav-btn" id="s1prev" onclick="lessonNav(1,-1)">← Précédent</button><button class="nav-btn primary" id="s1next" onclick="lessonNav(1,1)">Suivant →</button></div>
+</div>
+<div class="lesson" id="lesson2">
+  <div class="lesson-header"><button class="lesson-back" onclick="closeLesson()">←</button><div class="lesson-title">Niveau 2 · Coefficients aₚ</div></div>
+  <div style="padding:8px 13px 0;flex-shrink:0;"><div class="step-pills" id="s2pills"></div></div>
+  <div class="lesson-body" id="s2body"></div>
+  <div class="lesson-nav"><button class="nav-btn" id="s2prev" onclick="lessonNav(2,-1)">← Précédent</button><button class="nav-btn primary" id="s2next" onclick="lessonNav(2,1)">Suivant →</button></div>
+</div>
+<div class="lesson" id="lesson3">
+  <div class="lesson-header"><button class="lesson-back" onclick="closeLesson()">←</button><div class="lesson-title">Niveau 3 · Fonctions L elliptiques</div></div>
+  <div style="padding:8px 13px 0;flex-shrink:0;"><div class="step-pills" id="s3pills"></div></div>
+  <div class="lesson-body" id="s3body"></div>
+  <div class="lesson-nav"><button class="nav-btn" id="s3prev" onclick="lessonNav(3,-1)">← Précédent</button><button class="nav-btn primary" id="s3next" onclick="lessonNav(3,1)">Suivant →</button></div>
+</div>
+```
+
+  </div>
+</div>
+
+<!-- MODE 4 — ORACLE -->
+
+<div class="screen" id="mode4">
+  <div class="game-header"><button class="back-btn" onclick="goto('home')">←</button><h2>🔮 Oracle Modulaire</h2><div class="score-pill" id="m4pill">Choisir ↓</div></div>
+  <div class="game-body">
+    <div class="curve-picker"><h3>① Choisis une courbe</h3><div class="curve-grid" id="m4grid"></div></div>
+    <div id="m4canvasWrap"><canvas id="cvs4"></canvas></div>
+    <div class="modform-output" id="m4out"><h3>② Forme modulaire f(τ)</h3><div class="mf-empty" id="m4empty">← Sélectionne une courbe</div><div id="m4cnt" style="display:none"></div></div>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ══════ KATEX HELPERS ══════
+// K(tex) → inline math HTML string
+function K(tex){
+  try{return katex.renderToString(tex,{throwOnError:false,displayMode:false});}
+  catch(e){return `<span style="font-family:monospace;color:var(--gold)">${tex}</span>`;}
+}
+// KB(tex) → display (block) math HTML string
+function KB(tex){
+  try{return katex.renderToString(tex,{throwOnError:false,displayMode:true});}
+  catch(e){return `<div style="font-family:monospace;color:var(--gold);padding:6px 0">${tex}</div>`;}
+}
+// fbox(tex, label?) → formula block with optional label
+function fbox(tex,label=''){
+  const inner=KB(tex);
+  return `<div class="formula">${label?`<div style="font-size:.62rem;color:var(--dim);margin-bottom:4px;font-family:'Space Mono',monospace;">${label}</div>`:''}${inner}</div>`;
+}
+// fboxM(lines) → multi-line formula block (array of tex strings)
+function fboxM(lines,label=''){
+  const inner=lines.map(l=>KB(l)).join('<div style="height:4px"></div>');
+  return `<div class="formula">${label?`<div style="font-size:.62rem;color:var(--dim);margin-bottom:4px;font-family:'Space Mono',monospace;">${label}</div>`:''}${inner}</div>`;
+}
+// Re-render KaTeX after dynamic content injection
+function reKaTeX(el){
+  if(window.renderMathInElement&&el){
+    renderMathInElement(el,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false});
+  }
+}
+// ══════ STARS ══════
+(()=>{
+  const c=document.getElementById('stars'),ctx=c.getContext('2d');
+  let W,H,stars=[];
+  const resize=()=>{W=c.width=innerWidth;H=c.height=innerHeight;stars=Array.from({length:70},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.1+.2,a:Math.random(),da:Math.random()*.007+.002}));};
+  resize();window.addEventListener('resize',resize);
+  (function t(){ctx.clearRect(0,0,W,H);stars.forEach(s=>{s.a+=s.da;if(s.a>1||s.a<0)s.da*=-1;ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(180,200,255,${s.a*.55})`;ctx.fill();});requestAnimationFrame(t);})();
+})();
+
+// ══════ LOGO ══════
+(()=>{
+  const c=document.getElementById('logoC'),ctx=c.getContext('2d');let t=0;
+  (function d(){ctx.clearRect(0,0,64,64);ctx.strokeStyle='#00f5c4';ctx.lineWidth=1.7;ctx.shadowColor='#00f5c4';ctx.shadowBlur=6;
+    for(let b=0;b<2;b++){ctx.beginPath();let f=true;for(let x=-2.4;x<=2.4;x+=.02){const y2=x*x*x-x+.5;if(y2<0){f=true;continue;}const y=Math.sqrt(y2)*(b?-1:1);const px=(x+2.4)/4.8*60+2,py=32-y*10;f?ctx.moveTo(px,py):ctx.lineTo(px,py);f=false;}ctx.stroke();}
+    ctx.shadowBlur=0;const px2=.8+Math.sin(t)*1.1;const y2=px2*px2*px2-px2+.5;if(y2>=0){const y=Math.sqrt(y2);const sx=(px2+2.4)/4.8*60+2,sy=32-y*10;ctx.beginPath();ctx.arc(sx,sy,3.2,0,Math.PI*2);ctx.fillStyle='#a855f7';ctx.shadowColor='#a855f7';ctx.shadowBlur=7;ctx.fill();ctx.shadowBlur=0;}
+    t+=.03;requestAnimationFrame(d);})();
+})();
+
+// ══════ NAV ══════
+let curScreen='home';
+let bestScore=0;
+function goto(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  curScreen=id;
+  if(id==='mode1')initMode1();
+  if(id==='mode2')initMode2();
+  if(id==='mode3')initMode3();
+  if(id==='mode4')initMode4();
+  if(id==='home')document.getElementById('bestScore').textContent=bestScore;
+}
+let toastT;
+function showToast(msg,type='good'){const t=document.getElementById('toast');clearTimeout(toastT);t.textContent=msg;t.className=`toast ${type} show`;toastT=setTimeout(()=>t.classList.remove('show'),2000);}
+
+// ══════ MODE 1 ══════
+let m1ctx,m1W,m1H,m1a=-1,m1b=1,m1taskIdx=0,m1stars=[],m1discOpen=false;
+const m1tasks=[
+  {cat:'Discriminant',text:'<strong>🎯 Défi 1 :</strong> Trouve une courbe <em>singulière</em> (Δ = 0).',hint:'Essaie a=−3,b=2 ou a=0,b=0.',check:(a,b)=>Math.abs(-16*(4*a**3+27*b*b))<1,ok:'Δ=0 → nœud ou rebroussement.',rat:false},
+  {cat:'Discriminant',text:'<strong>🎯 Défi 2 :</strong> Obtiens |Δ| > 3000.',hint:'Pousse a et b aux extrêmes opposés.',check:(a,b)=>Math.abs(-16*(4*a**3+27*b*b))>3000,ok:'Grand Δ → courbe très lisse.',rat:false},
+  {cat:'Discriminant',text:'<strong>🎯 Défi 3 :</strong> Trouve Δ < 0.',hint:'Une seule branche quand Δ<0.',check:(a,b)=>-16*(4*a**3+27*b*b)<-10,ok:'Δ<0 → une seule racine réelle.',rat:false},
+  {cat:'Discriminant',text:'<strong>🎯 Défi 4 :</strong> Δ > 0 et a < 0 → deux branches.',hint:'a<0 crée un creux dans le polynôme.',check:(a,b)=>-16*(4*a**3+27*b*b)>10&&a<-.4,ok:'Deux composantes connexes !',rat:false},
+  {cat:'Points ℚ',text:'<strong>🎯 Défi 5 :</strong> Passe par (0,1) → impose b = 1.',hint:'1²=0+0+b donc b=1.',check:(a,b)=>Math.abs(b-1)<.1,ok:'(0,1) et (0,−1) sur la courbe.',rat:true,tp:{x:0,y:1}},
+  {cat:'Points ℚ',text:'<strong>🎯 Défi 6 :</strong> Passe par (1,1). Calcule b !',hint:'1=1+a+b → b=−a.',check:(a,b)=>Math.abs(1+a+b-1)<.15,ok:'(1,1) sur la courbe quand b=−a.',rat:true,tp:{x:1,y:1}},
+  {cat:'Points ℚ',text:'<strong>🎯 Défi 7 :</strong> y²=x³−x (a=−1,b=0) : 3 points de 2-torsion.',hint:'y=0 donne x(x−1)(x+1)=0.',check:(a,b)=>Math.abs(a+1)<.1&&Math.abs(b)<.1,ok:'(−1,0),(0,0),(1,0) : 3 points de 2-torsion.',rat:true,tp:null},
+  {cat:'Points ℚ',text:'<strong>🎯 Défi 8 :</strong> Courbe de Mordell y²=x³+1.',hint:'Points entiers : (−1,0),(0,±1),(2,±3).',check:(a,b)=>Math.abs(a)<.1&&Math.abs(b-1)<.1,ok:'6 points entiers — prouvé par Fermat en 1657 !',rat:true,tp:{x:2,y:3}},
+  {cat:'Points ℚ',text:'<strong>🎯 Défi 9 :</strong> Courbe a=−3, b=3.',hint:'Étudiée par Birch & Swinnerton-Dyer en 1965.',check:(a,b)=>Math.abs(a+3)<.1&&Math.abs(b-3)<.1,ok:'y²=x³−3x+3, rang 0, BSD vérifié.',rat:true,tp:{x:1,y:1}},
+  {cat:'Points ℚ',text:'<strong>🎯 Défi 10 :</strong> Point (−1,0) sur la courbe ET Δ≠0.',hint:'b=1+a. Essaie a=0,b=1.',check:(a,b)=>Math.abs(-1-a+b)<.15&&Math.abs(-16*(4*a**3+27*b*b))>5,ok:'(−1,0) est un point de 2-torsion.',rat:true,tp:{x:-1,y:0}},
+];
+function md(a,p){return((a%p)+p)%p;}
+function findRatPts(a,b){const pts=[];for(let n=-10;n<=10;n++){const x=n/2,y2=x**3+a*x+b;if(y2<0)continue;if(y2===0){pts.push({x,y:0});continue;}const y=Math.sqrt(y2);if(Math.abs(Math.round(y*2)-y*2)<.01){const yr=Math.round(y*2)/2;pts.push({x,y:yr});if(yr)pts.push({x,y:-yr});}}return pts.slice(0,8);}
+function ptStr(p){return`(${Number.isInteger(p.x)?p.x:p.x.toFixed(1)},${Number.isInteger(p.y)?p.y:p.y.toFixed(1)})`;}
+function initMode1(){
+  const cv=document.getElementById('cvs1'),wr=cv.parentElement,dpr=Math.min(devicePixelRatio||1,2);
+  m1W=wr.clientWidth;m1H=wr.clientHeight||210;
+  cv.width=m1W*dpr;cv.height=m1H*dpr;cv.style.width=m1W+'px';cv.style.height=m1H+'px';
+  m1ctx=cv.getContext('2d');m1ctx.scale(dpr,dpr);
+  m1a=+document.getElementById('slA').value;m1b=+document.getElementById('slB').value;
+  drawMode1();updateTask1();updateStars1();
+}
+function drawMode1(){
+  const ctx=m1ctx,W=m1W,H=m1H,step=36,ox=W/2,oy=H/2;
+  ctx.clearRect(0,0,W,H);
+  ctx.strokeStyle='#0d1117';ctx.lineWidth=.8;
+  for(let x=ox%step;x<W;x+=step){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=oy%step;y<H;y+=step){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+  ctx.strokeStyle='#1a2035';ctx.lineWidth=1.1;
+  ctx.beginPath();ctx.moveTo(0,oy);ctx.lineTo(W,oy);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(ox,0);ctx.lineTo(ox,H);ctx.stroke();
+  ctx.fillStyle='#2a3a5a';ctx.font='9px Space Mono,monospace';ctx.textAlign='center';
+  for(let i=-5;i<=5;i++){if(!i)continue;ctx.fillText(i,ox+i*step,oy+10);ctx.fillText(-i,ox-7,oy+i*step+3);}
+  const disc=-16*(4*m1a**3+27*m1b*m1b),isSing=Math.abs(disc)<2;
+  const col=isSing?'#ff4466':'#00f5c4';
+  ctx.strokeStyle=col;ctx.lineWidth=2.2;ctx.shadowColor=col;ctx.shadowBlur=isSing?0:7;
+  const ts=(x,y)=>[ox+x*step,oy-y*step];
+  for(let br=0;br<2;br++){ctx.beginPath();let f=true;for(let xi=-W/2/step-.5;xi<=W/2/step+.5;xi+=.014){const y2=xi**3+m1a*xi+m1b;if(y2<0){f=true;continue;}const y=Math.sqrt(y2)*(br?-1:1);const[sx,sy]=ts(xi,y);f?ctx.moveTo(sx,sy):ctx.lineTo(sx,sy);f=false;}ctx.stroke();}
+  ctx.shadowBlur=0;
+  const t=m1tasks[m1taskIdx%m1tasks.length];
+  if(t.rat){findRatPts(m1a,m1b).forEach(p=>{const[sx,sy]=ts(p.x,p.y);if(sx<0||sx>W||sy<0||sy>H)return;const isTgt=t.tp&&Math.abs(p.x-t.tp.x)<.1&&Math.abs(p.y-t.tp.y)<.1;ctx.save();ctx.strokeStyle=isTgt?'#f5a623':'#a855f755';ctx.lineWidth=isTgt?2:1.2;ctx.shadowColor=isTgt?'#f5a623':'transparent';ctx.shadowBlur=isTgt?8:0;ctx.beginPath();ctx.arc(sx,sy,isTgt?6:4,0,Math.PI*2);ctx.fillStyle=isTgt?'#f5a62322':'#a855f715';ctx.fill();ctx.stroke();if(isTgt){ctx.fillStyle='#f5a623';ctx.font='bold 8px Space Mono,monospace';ctx.textAlign='center';ctx.shadowBlur=0;ctx.fillText(ptStr(p),sx,sy-10);}ctx.restore();});}
+  updateDiscPanel();
+  document.getElementById('m1disc').textContent=`Δ=${disc.toFixed(0)}`;
+  document.getElementById('m1disc').style.color=isSing?'var(--red)':disc>0?'var(--cyan)':'var(--gold)';
+  document.getElementById('ecEq').textContent=`y² = x³ ${m1a>=0?'+':''}${m1a}x ${m1b>=0?'+':''}${m1b}`;
+  const rb=document.getElementById('ratptsBar');
+  if(t.rat){rb.style.display='flex';document.getElementById('ratptsList').textContent=findRatPts(m1a,m1b).map(ptStr).join('  ')||'aucun';}
+  else rb.style.display='none';
+}
+function updateDiscPanel(){
+  const a=m1a,b=m1b,a3=a**3,b2=b*b,inner=4*a3+27*b2,disc=-16*inner;
+  const el=document.getElementById('discPanel'),isSing=Math.abs(disc)<2,twoComp=disc>10&&a<-.4;
+  el.innerHTML=`<div>y² = x³ <span class="hl">${a>=0?'+':''}${a}</span>x <span class="hl">${b>=0?'+':''}${b}</span></div>
+<div>Δ = −16·(4a³+27b²)</div>
+<div>  = −16·(4·<span class="hl">${a3.toFixed(2)}</span> + 27·<span class="hl">${b2.toFixed(2)}</span>)</div>
+<div>  = −16·<span class="hl">${inner.toFixed(2)}</span></div>
+<div class="big" style="color:${isSing?'var(--red)':disc>0?'var(--cyan)':'var(--gold)'}">Δ = ${disc.toFixed(2)}</div>
+<div class="interp">${isSing?'⚠️ Singulière : nœud ou rebroussement.':twoComp?'✨ Deux composantes connexes !':disc>0?'✓ Lisse, un ovale + branche infinie.':'✓ Lisse, une seule branche.'}</div>`;
+}
+function toggleDiscPanel(){m1discOpen=!m1discOpen;document.getElementById('discPanel').classList.toggle('open',m1discOpen);}
+function onSlider(){m1a=+document.getElementById('slA').value;m1b=+document.getElementById('slB').value;document.getElementById('valA').textContent=m1a;document.getElementById('valB').textContent=m1b;drawMode1();}
+function randomCurve(){const a=(Math.round((Math.random()*10-5)*2))/2,b=(Math.round((Math.random()*10-5)*2))/2;document.getElementById('slA').value=a;document.getElementById('slB').value=b;m1a=a;m1b=b;document.getElementById('valA').textContent=a;document.getElementById('valB').textContent=b;drawMode1();}
+function updateTask1(){const idx=m1taskIdx%m1tasks.length,t=m1tasks[idx];document.getElementById('ecTask').innerHTML=t.text+`<br><span style="font-size:.66rem;color:var(--dim);display:block;margin-top:3px">💡 ${t.hint}</span>`;document.getElementById('taskCtr').textContent=`Défi ${idx+1}/10 · ${t.cat}`;}
+function updateStars1(){const el=document.getElementById('taskStars');el.innerHTML='';m1tasks.forEach((_,i)=>{const s=document.createElement('span');s.textContent=m1stars.includes(i)?'⭐':'☆';if(m1stars.includes(i))s.style.filter='drop-shadow(0 0 3px gold)';el.appendChild(s);});}
+function checkTask(){const idx=m1taskIdx%m1tasks.length,t=m1tasks[idx];if(t.check(m1a,m1b)){if(!m1stars.includes(idx))m1stars.push(idx);updateStars1();showToast('⭐ '+t.ok.slice(0,55),'good');m1taskIdx++;setTimeout(()=>{updateTask1();drawMode1();},500);}else showToast('✗ Pas encore…','bad');}
+function nextTask(){m1taskIdx++;updateTask1();drawMode1();}
+
+// ══════ MODE 2 — SANDBOX + PUZZLE ══════
+function switchTab(tab){document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));document.getElementById('tab-'+tab).classList.add('active');document.getElementById('tc-'+tab).classList.add('active');if(tab==='sandbox')initSandbox();if(tab==='puzzle')initPuzzleTab();}
+function initMode2(){switchTab('sandbox');}
+
+let sb={a:-1,b:1,P:{x:-1,y:1},Q:{x:1,y:1},PQ:null,R3:null,step:0,drag:null,ctx:null,W:0,H:0,xMin:-3,xMax:4,yMin:-5,yMax:6,rafId:null};
+const SB_STEPS=['① Points P et Q','② Droite sécante PQ','③ Tangente (P=Q)','④ 3ème intersection −R','⑤ Réflexion → P+Q'];
+function initSandbox(){
+  const cv=document.getElementById('cvsSandbox');if(!cv)return;
+  const dpr=Math.min(devicePixelRatio||1,2);sb.W=cv.parentElement.clientWidth||320;sb.H=Math.round(sb.W*.68);
+  cv.width=sb.W*dpr;cv.height=sb.H*dpr;cv.style.width=sb.W+'px';cv.style.height=sb.H+'px';
+  sb.ctx=cv.getContext('2d');sb.ctx.scale(dpr,dpr);
+  sb.P=snapTC(sb.P.x,sb.a,sb.b,1);sb.Q=snapTC(sb.Q.x,sb.a,sb.b,-1);sb.step=0;
+  cv.ontouchstart=sbTS;cv.ontouchmove=sbTM;cv.ontouchend=sbTE;
+  cv.onmousedown=sbMD;cv.onmousemove=sbMM;cv.onmouseup=()=>sb.drag=null;
+  if(sb.rafId)cancelAnimationFrame(sb.rafId);sbRecompute();updateSbUI();
+  (function loop(){if(curScreen!=='mode2')return;drawSandbox();sb.rafId=requestAnimationFrame(loop);})();
+}
+function snapTC(x,a,b,br){const y2=x**3+a*x+b;if(y2>=0)return{x,y:br*Math.sqrt(y2)};for(let dx=.05;dx<4;dx+=.05){for(const tx of[x+dx,x-dx]){const ty2=tx**3+a*tx+b;if(ty2>=0)return{x:tx,y:br*Math.sqrt(ty2)};}}return{x:0,y:Math.sqrt(Math.abs(b))};}
+function sbS2W(sx,sy){return{x:sb.xMin+(sx/sb.W)*(sb.xMax-sb.xMin),y:sb.yMax-(sy/sb.H)*(sb.yMax-sb.yMin)};}
+function sbW2S(x,y){return{sx:(x-sb.xMin)/(sb.xMax-sb.xMin)*sb.W,sy:sb.H-(y-sb.yMin)/(sb.yMax-sb.yMin)*sb.H};}
+function sbHit(sx,sy){for(const n of['P','Q']){const{sx:px,sy:py}=sbW2S(sb[n].x,sb[n].y);if(Math.hypot(sx-px,sy-py)<28)return n;}return null;}
+function getXY(cv,e){const r=cv.getBoundingClientRect(),s=e.touches?e.touches[0]:e;return{x:s.clientX-r.left,y:s.clientY-r.top};}
+function sbTS(e){e.preventDefault();const{x,y}=getXY(this,e);sb.drag=sbHit(x,y);}
+function sbTM(e){e.preventDefault();if(!sb.drag)return;const{x,y}=getXY(this,e);sbDragTo(x,y);}
+function sbTE(e){e.preventDefault();sb.drag=null;}
+function sbMD(e){sb.drag=sbHit(e.offsetX,e.offsetY);}
+function sbMM(e){if(sb.drag)sbDragTo(e.offsetX,e.offsetY);}
+function sbDragTo(sx,sy){const{x,y}=sbS2W(sx,sy);const br=y>=0?1:-1;const sn=snapTC(Math.max(sb.xMin+.1,Math.min(sb.xMax-.1,x)),sb.a,sb.b,br);sb[sb.drag]=sn;sbRecompute();updateSbUI();}
+function realAddR(P,Q,a){if(!P||!Q)return null;let m;if(Math.abs(P.x-Q.x)<1e-9&&Math.abs(P.y-Q.y)<1e-9){if(Math.abs(P.y)<1e-9)return null;m=(3*P.x*P.x+a)/(2*P.y);}else{if(Math.abs(Q.x-P.x)<1e-9)return null;m=(Q.y-P.y)/(Q.x-P.x);}const rx=m*m-P.x-Q.x,ry=m*(P.x-rx)-P.y;return{x:rx,y:ry};}
+function sbRecompute(){sb.R3=realAddR(sb.P,sb.Q,sb.a);sb.PQ=sb.R3?{x:sb.R3.x,y:-sb.R3.y}:null;}
+function onSbSlider(){sb.a=+document.getElementById('sbA').value;sb.b=+document.getElementById('sbB').value;document.getElementById('sbAval').textContent=sb.a;document.getElementById('sbBval').textContent=sb.b;sb.P=snapTC(sb.P.x,sb.a,sb.b,sb.P.y>=0?1:-1);sb.Q=snapTC(sb.Q.x,sb.a,sb.b,sb.Q.y>=0?1:-1);sbRecompute();updateSbUI();const as=sb.a>=0?`+ ${sb.a}`:`− ${Math.abs(sb.a)}`,bs=sb.b>=0?`+ ${sb.b}`:`− ${Math.abs(sb.b)}`;document.getElementById('sbEq').textContent=`y² = x³ ${as}x ${bs}`;}
+function updateSbUI(){const f=v=>v.toFixed(2);document.getElementById('sbPval').textContent=`(${f(sb.P.x)},${f(sb.P.y)})`;document.getElementById('sbQval').textContent=`(${f(sb.Q.x)},${f(sb.Q.y)})`;document.getElementById('sbPQval').textContent=sb.step>=4?(sb.PQ?`(${f(sb.PQ.x)},${f(sb.PQ.y)})`:'𝒪'):'…';document.getElementById('sbStepName').textContent=SB_STEPS[sb.step]||'';document.getElementById('sandboxStep').textContent=SB_STEPS[sb.step]||'✓';}
+function sbAnimStep(d){sb.step=Math.max(0,Math.min(4,sb.step+d));if(sb.step===2)sb.Q={...sb.P};else if(Math.abs(sb.P.x-sb.Q.x)<.01)sb.Q=snapTC(sb.P.x+1.5,sb.a,sb.b,-1);sbRecompute();updateSbUI();}
+function sbReset(){sb.step=0;sb.a=-1;sb.b=1;document.getElementById('sbA').value=-1;document.getElementById('sbB').value=1;document.getElementById('sbAval').textContent='-1';document.getElementById('sbBval').textContent='1';sb.P=snapTC(-1,sb.a,sb.b,1);sb.Q=snapTC(1,sb.a,sb.b,1);sbRecompute();updateSbUI();document.getElementById('sbEq').textContent='y² = x³ − x + 1';}
+function drawSandbox(){
+  const ctx=sb.ctx,{W,H,a,b,P,Q,R3,PQ,step,xMin,xMax,yMin,yMax}=sb;if(!ctx)return;
+  const wx=x=>(x-xMin)/(xMax-xMin)*W,wy=y=>H-(y-yMin)/(yMax-yMin)*H;
+  ctx.clearRect(0,0,W,H);ctx.fillStyle='#07090f';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='#0d1117';ctx.lineWidth=.7;
+  for(let xi=Math.ceil(xMin);xi<=xMax;xi++){ctx.beginPath();ctx.moveTo(wx(xi),0);ctx.lineTo(wx(xi),H);ctx.stroke();}
+  for(let yi=Math.ceil(yMin);yi<=yMax;yi++){ctx.beginPath();ctx.moveTo(0,wy(yi));ctx.lineTo(W,wy(yi));ctx.stroke();}
+  ctx.strokeStyle='#1a2035';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(0,wy(0));ctx.lineTo(W,wy(0));ctx.stroke();
+  ctx.beginPath();ctx.moveTo(wx(0),0);ctx.lineTo(wx(0),H);ctx.stroke();
+  ctx.strokeStyle='#00f5c4';ctx.lineWidth=2.2;ctx.shadowColor='#00f5c4';ctx.shadowBlur=7;
+  for(let br=0;br<2;br++){ctx.beginPath();let f=true;for(let xi=xMin;xi<=xMax;xi+=.014){const y2=xi**3+a*xi+b;if(y2<0){f=true;continue;}const yi=Math.sqrt(y2)*(br?-1:1);f?(ctx.moveTo(wx(xi),wy(yi)),f=false):ctx.lineTo(wx(xi),wy(yi));}ctx.stroke();}
+  ctx.shadowBlur=0;
+  const isTan=step===2||Math.abs(P.x-Q.x)<.01&&Math.abs(P.y-Q.y)<.01;
+  if(step>=1){ctx.save();ctx.strokeStyle=isTan?'#f5a623':'#f5a62388';ctx.lineWidth=1.8;ctx.setLineDash([5,4]);ctx.globalAlpha=.85;let slope;if(isTan)slope=Math.abs(P.y)<1e-9?Infinity:(3*P.x*P.x+a)/(2*P.y);else slope=Math.abs(Q.x-P.x)<1e-9?Infinity:(Q.y-P.y)/(Q.x-P.x);if(!isFinite(slope)){ctx.beginPath();ctx.moveTo(wx(P.x),0);ctx.lineTo(wx(P.x),H);ctx.stroke();}else{const ly0=P.y+slope*(xMin-P.x),ly1=P.y+slope*(xMax-P.x);ctx.beginPath();ctx.moveTo(wx(xMin),wy(ly0));ctx.lineTo(wx(xMax),wy(ly1));ctx.stroke();}ctx.setLineDash([]);ctx.restore();}
+  if(step>=4&&R3&&PQ){ctx.save();ctx.strokeStyle='#ff4466';ctx.lineWidth=1.8;ctx.setLineDash([4,4]);ctx.globalAlpha=.8;ctx.beginPath();ctx.moveTo(wx(R3.x),wy(R3.y));ctx.lineTo(wx(PQ.x),wy(PQ.y));ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#ff4466';ctx.font='9px Space Mono,monospace';ctx.textAlign='left';ctx.globalAlpha=.9;ctx.fillText('⇕',wx(R3.x)+4,wy((R3.y+PQ.y)/2));ctx.restore();}
+  const dp=(x,y,col,lbl,drag)=>{const sx=wx(x),sy=wy(y);ctx.save();const g=ctx.createRadialGradient(sx,sy,2,sx,sy,15);g.addColorStop(0,col+'55');g.addColorStop(1,col+'00');ctx.beginPath();ctx.arc(sx,sy,15,0,Math.PI*2);ctx.fillStyle=g;ctx.fill();if(drag){ctx.strokeStyle=col+'44';ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(sx,sy,11,0,Math.PI*2);ctx.stroke();}ctx.beginPath();ctx.arc(sx,sy,7,0,Math.PI*2);ctx.fillStyle='#07090f';ctx.fill();ctx.strokeStyle=col;ctx.lineWidth=2.2;ctx.shadowColor=col;ctx.shadowBlur=10;ctx.stroke();ctx.beginPath();ctx.arc(sx,sy,2.5,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();ctx.shadowBlur=0;const oy2=sy>H*.75?-18:15;ctx.font='bold 9px Space Mono,monospace';ctx.textAlign='center';ctx.fillStyle=col;ctx.fillText(lbl,sx,sy+oy2);ctx.restore();};
+  dp(P.x,P.y,'#00f5c4','P',true);dp(Q.x,Q.y,'#a855f7','Q',true);
+  if(step>=3&&R3)dp(R3.x,R3.y,'#ff4466','−R',false);
+  if(step>=4&&PQ)dp(PQ.x,PQ.y,'#f5a623','P+Q',false);
+}
+
+// ── PUZZLE ──
+const pCurves=[{a:1,b:1,p:5,name:'y²=x³+x+1 (5)'},{a:2,b:3,p:7,name:'y²=x³+2x+3 (7)'},{a:1,b:0,p:7,name:'y²=x³+x (7)'},{a:4,b:4,p:11,name:'y²=x³+4x+4 (11)'},{a:1,b:6,p:11,name:'y²=x³+x+6 (11)'}];
+let m2s=0,m2l=3,m2q=0,m2tot=8,m2ctx,m2W,m2H,m2curve,m2corr;
+function modInv(a,p){let[or,r,os,s]=[a,p,1,0];while(r){const q=Math.floor(or/r);[or,r]=[r,or-q*r];[os,s]=[s,os-q*s];}return md(os,p);}
+function getPts(a,b,p){const pts=[];for(let x=0;x<p;x++){const rhs=md(x**3+a*x+b,p);for(let y=0;y<p;y++)if(md(y*y,p)===rhs)pts.push({x,y});}pts.push({x:null,y:null});return pts;}
+function addPts(P,Q,a,p){if(!P.x&&P.x!==0)return Q;if(!Q.x&&Q.x!==0)return P;if(P.x===Q.x&&md(P.y+Q.y,p)===0)return{x:null,y:null};let m;if(P.x===Q.x&&P.y===Q.y)m=md(md(3*P.x*P.x+a,p)*modInv(md(2*P.y,p),p),p);else m=md(md(Q.y-P.y,p)*modInv(md(Q.x-P.x,p),p),p);const rx=md(m*m-P.x-Q.x,p),ry=md(m*(P.x-rx)-P.y,p);return{x:rx,y:ry};}
+function ptLbl(P){return P.x===null?'𝒪':`(${P.x},${P.y})`;}
+function initPuzzleTab(){m2s=0;m2l=3;m2q=0;document.getElementById('m2score').textContent='0 pts';document.getElementById('m2result').classList.remove('show');const cv=document.getElementById('cvs2'),dpr=Math.min(devicePixelRatio||1,2);m2W=cv.parentElement.clientWidth||320;m2H=Math.round(m2W*.55);cv.width=m2W*dpr;cv.height=m2H*dpr;cv.style.width=m2W+'px';cv.style.height=m2H+'px';m2ctx=cv.getContext('2d');m2ctx.scale(dpr,dpr);renderLives();nextPuzzle();}
+function renderLives(){const el=document.getElementById('lives');el.innerHTML='';for(let i=0;i<3;i++){const h=document.createElement('span');h.className='heart'+(i>=m2l?' lost':'');h.textContent='♥';el.appendChild(h);}}
+function nextPuzzle(){
+  if(m2q>=m2tot){endM2();return;}
+  document.getElementById('m2prog').style.width=m2q/m2tot*100+'%';
+  m2curve=pCurves[m2q%pCurves.length];
+  const pts=getPts(m2curve.a,m2curve.b,m2curve.p).filter(p=>p.x!==null);
+  if(pts.length<2){m2q++;nextPuzzle();return;}
+  const iP=Math.floor(Math.random()*pts.length);let iQ=Math.floor(Math.random()*pts.length);if(iQ===iP)iQ=(iQ+1)%pts.length;
+  const P=pts[iP],Q=pts[iQ];m2corr=addPts(P,Q,m2curve.a,m2curve.p);
+  document.getElementById('ptP').textContent=ptLbl(P);document.getElementById('ptQ').textContent=ptLbl(Q);document.getElementById('m2curve').textContent=m2curve.name;
+  const all=getPts(m2curve.a,m2curve.b,m2curve.p),cl=ptLbl(m2corr),wrongs=all.filter(p=>ptLbl(p)!==cl).slice(0,3);
+  while(wrongs.length<3)wrongs.push({x:Math.floor(Math.random()*m2curve.p),y:Math.floor(Math.random()*m2curve.p)});
+  const opts=[m2corr,...wrongs.slice(0,3)].sort(()=>Math.random()-.5);
+  const el=document.getElementById('opts');el.innerHTML='';
+  opts.forEach(pt=>{const b=document.createElement('button');b.className='opt-btn';b.textContent=ptLbl(pt);b.onclick=()=>checkAns(pt,b);el.appendChild(b);});
+  drawM2(P,Q);
+}
+function drawM2(P,Q){
+  const ctx=m2ctx,W=m2W,H=m2H,p=m2curve.p,pw=Math.min((W-32)/(p+1),20),ph=Math.min((H-24)/(p+1),20),ox=16,oy=H-14;
+  ctx.fillStyle='#07090f';ctx.fillRect(0,0,W,H);
+  getPts(m2curve.a,m2curve.b,m2curve.p).forEach(pt=>{if(!pt.x&&pt.x!==0)return;const sx=ox+pt.x*pw+pw/2,sy=oy-pt.y*ph-ph/2;ctx.beginPath();ctx.arc(sx,sy,2.2,0,Math.PI*2);ctx.fillStyle='#2a3a5a';ctx.fill();});
+  ctx.fillStyle='#2a3a5a';ctx.font='7px Space Mono,monospace';ctx.textAlign='center';for(let i=0;i<=p;i++){ctx.fillText(i,ox+i*pw+pw/2,H-4);if(i)ctx.fillText(i,11,oy-i*ph-ph/2+2);}
+  [[P,'#00f5c4','P'],[Q,'#a855f7','Q']].forEach(([pt,col,lbl])=>{if(!pt)return;const sx=ox+pt.x*pw+pw/2,sy=oy-pt.y*ph-ph/2;ctx.beginPath();ctx.arc(sx,sy,5.5,0,Math.PI*2);ctx.fillStyle=col+'33';ctx.fill();ctx.beginPath();ctx.arc(sx,sy,4,0,Math.PI*2);ctx.fillStyle=col;ctx.shadowColor=col;ctx.shadowBlur=6;ctx.fill();ctx.shadowBlur=0;ctx.fillStyle=col;ctx.font='bold 7px Space Mono,monospace';ctx.textAlign='center';ctx.fillText(lbl,sx,sy-8);});
+}
+function checkAns(pt,btn){const isC=ptLbl(pt)===ptLbl(m2corr);document.querySelectorAll('.opt-btn').forEach(b=>{b.disabled=true;if(b.textContent===ptLbl(m2corr))b.classList.add('correct');});if(isC){btn.classList.add('correct');m2s+=100;document.getElementById('m2score').textContent=m2s+' pts';showToast('✓ +100 pts','good');}else{btn.classList.add('wrong');m2l--;renderLives();showToast('✗ '+ptLbl(m2corr),'bad');if(m2l<=0){setTimeout(endM2,1200);return;}}m2q++;setTimeout(nextPuzzle,1400);}
+function endM2(){if(m2s>bestScore)bestScore=m2s;const o=document.getElementById('m2result');o.classList.add('show');document.getElementById('resEmoji').textContent=m2s>=600?'🏆':m2s>=300?'⭐':'💫';document.getElementById('resTitle').textContent=m2s>=600?'Excellent !':'Bien joué !';document.getElementById('resScore').textContent=m2s+' pts';document.getElementById('resSub').textContent=`${m2q} questions · ${3-m2l} erreurs`;}
+function restartM2(){initPuzzleTab();}
+
+// ══════ MODE 3 — COURS ══════
+let l0step=0;
+let l1step=0,l2step=0;
+let l1p=7,l1a=1,l1b=1;
+let l2p=5,l2a=1,l2b=1,l2P=null,l2Q=null;
+let l1done=false,l2done=false;
+
+function initMode3(){
+  document.getElementById('coursHome').style.display='flex';
+  document.getElementById('lesson0').classList.remove('active');
+  document.getElementById('lesson1').classList.remove('active');
+  document.getElementById('lesson2').classList.remove('active');
+  // Badge level 2
+  if(l1done){
+    const lc=document.getElementById('lcard2');lc.classList.remove('locked');lc.classList.add('unlocked');
+    document.getElementById('lbadge2').textContent='NOUVEAU';document.getElementById('lbadge2').className='level-badge new';
+  }
+  if(l2done){document.getElementById('lnum2').classList.add('done');document.getElementById('lbadge2').textContent='✓ TERMINÉ';document.getElementById('lbadge2').className='level-badge done';}
+  if(l1done){document.getElementById('lnum1').classList.add('done');document.getElementById('lbadge1').textContent='✓ TERMINÉ';document.getElementById('lbadge1').className='level-badge done';}
+}
+
+function openLesson(n){
+  if(n===2&&!l1done){showToast('Termine le niveau 1 d\'abord !','bad');return;}
+  document.getElementById('coursHome').style.display='none';
+  if(n===0){l0step=0;document.getElementById('lesson0').classList.add('active');renderLesson(0);}
+  if(n===1){l1step=0;document.getElementById('lesson1').classList.add('active');renderLesson(1);}
+  if(n===2){l2step=0;document.getElementById('lesson2').classList.add('active');renderLesson(2);}
+}
+function closeLesson(){document.getElementById('coursHome').style.display='flex';document.getElementById('lesson0').classList.remove('active');document.getElementById('lesson1').classList.remove('active');document.getElementById('lesson2').classList.remove('active');}
+
+function renderLesson(lv){
+  const step=lv===0?l0step:lv===1?l1step:l2step;
+  const total=lv===2?6:5;
+  const pillsEl=document.getElementById(`s${lv}pills`),bodyEl=document.getElementById(`s${lv}body`);
+  pillsEl.innerHTML='';
+  for(let i=0;i<total;i++){const d=document.createElement('div');d.className='step-pill'+(i<step?' done':i===step?' active':'');pillsEl.appendChild(d);}
+  const prev=document.getElementById(`s${lv}prev`),next=document.getElementById(`s${lv}next`);
+  prev.style.opacity=step===0?'0.3':'1';prev.disabled=step===0;
+  if(step===total-1){next.textContent=lv===0?'✓ Commencer les niveaux':'✓ Terminer';next.className='nav-btn success';}
+  else{next.textContent='Suivant →';next.className='nav-btn primary';}
+  if(lv===0)renderL0Step(step,bodyEl);
+  else if(lv===1)renderL1Step(step,bodyEl);
+  else renderL2Step(step,bodyEl);
+}
+
+// Fix lessonNav for level 2 (total=6)
+function lessonNav(lv,d){
+  if(lv===0){
+    if(d===-1&&l0step===0)return;
+    if(d===1&&l0step===4){closeLesson();showToast('Introduction lue ! Place aux niveaux ✓','good');return;}
+    l0step=Math.max(0,Math.min(4,l0step+d));renderLesson(0);
+  } else if(lv===1){
+    if(d===-1&&l1step===0)return;
+    if(d===1&&l1step===4){l1done=true;closeLesson();showToast('⭐ Niveau 1 terminé !','good');initMode3();return;}
+    l1step=Math.max(0,Math.min(4,l1step+d));renderLesson(1);
+  } else {
+    if(d===-1&&l2step===0)return;
+    if(d===1&&l2step===5){l2done=true;closeLesson();showToast('⭐ Niveau 2 terminé !','good');initMode3();return;}
+    l2step=Math.max(0,Math.min(5,l2step+d));renderLesson(2);
+  }
+}
+
+// ── Ap table + chart ──
+function updateApTable(){
+  const ea=document.getElementById('l2ai2'),eb=document.getElementById('l2bi2');if(!ea)return;
+  const a=+ea.value,b=+eb.value;
+  document.getElementById('l2av2').textContent=a;
+  document.getElementById('l2bv2').textContent=b;
+  document.getElementById('l2eq2lbl').textContent=`y² = x³ + ${a}x + ${b}`;
+  const primes=[2,3,5,7,11,13,17,19,23];
+  const aps=primes.map(p=>{
+    const disc=-16*(4*a**3+27*b*b);
+    if(Math.abs(disc)<1e-9)return null; // singular
+    const count=getPts(md(a,p),md(b,p),p).length; // affine pts only
+    return p+1-count; // ap = p+1 - #E(Fp)
+  });
+  // Table HTML
+  const wrap=document.getElementById('apTableWrap');if(!wrap)return;
+  let html=`<div class="pts-table-wrap"><table class="pts-table">
+    <thead><tr><th>p</th>${primes.map(p=>`<th>${p}</th>`).join('')}</tr></thead>
+    <tbody>
+      <tr><th style="color:var(--dim)">#E</th>${primes.map((p,i)=>{const ap=aps[i];const cnt=ap===null?'—':p+1-ap;return`<td style="color:var(--dim)">${cnt}</td>`}).join('')}</tr>
+      <tr><th style="color:var(--purp)">aₚ</th>${primes.map((p,i)=>{const ap=aps[i];if(ap===null)return`<td class="off">—</td>`;const cls=ap>0?'ap-pos-l':ap<0?'ap-neg-l':'ap-zero-l';return`<td class="${cls}">${ap}</td>`;}).join('')}</tr>
+      <tr><th style="color:var(--dim)">|aₚ|</th>${primes.map((p,i)=>{const ap=aps[i];if(ap===null)return`<td class="off">—</td>`;const bound=(2*Math.sqrt(p)).toFixed(1);const ok=Math.abs(ap)<=2*Math.sqrt(p);return`<td style="color:${ok?'var(--dim)':'var(--red)'}">${Math.abs(ap)}<span style="font-size:.55rem">≤${bound}</span></td>`;}).join('')}</tr>
+    </tbody>
+  </table></div>`;
+  wrap.innerHTML=html;
+  drawApChart(primes,aps);
+}
+
+function drawApChart(primes,aps){
+  const cv=document.getElementById('cvs_ap');if(!cv||!cv.parentElement)return;
+  const dpr=Math.min(devicePixelRatio||1,2),W=cv.parentElement.clientWidth||300,H=110;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.width=W+'px';cv.style.height=H+'px';
+  const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);
+  ctx.fillStyle='#07090f';ctx.fillRect(0,0,W,H);
+  const valid=aps.filter(a=>a!==null);
+  const maxAp=Math.max(...valid.map(Math.abs),1);
+  const pad=14,bw=(W-pad*2)/primes.length,mid=H/2;
+  // zero line
+  ctx.strokeStyle='#1a2035';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(pad,mid);ctx.lineTo(W-pad,mid);ctx.stroke();
+  // Hasse bound curve ±2√p
+  ctx.strokeStyle='#f5a62333';ctx.lineWidth=1.2;ctx.setLineDash([3,3]);
+  ctx.beginPath();primes.forEach((p,i)=>{const x=pad+i*bw+bw/2,bound=2*Math.sqrt(p)/maxAp*(H/2-12);i===0?ctx.moveTo(x,mid-bound):ctx.lineTo(x,mid-bound);});ctx.stroke();
+  ctx.beginPath();primes.forEach((p,i)=>{const x=pad+i*bw+bw/2,bound=2*Math.sqrt(p)/maxAp*(H/2-12);i===0?ctx.moveTo(x,mid+bound):ctx.lineTo(x,mid+bound);});ctx.stroke();
+  ctx.setLineDash([]);
+  // Bars
+  primes.forEach((p,i)=>{
+    const ap=aps[i];if(ap===null)return;
+    const x=pad+i*bw+3,bwInner=bw-6;
+    const bh=Math.abs(ap)/maxAp*(H/2-14);
+    const col=ap>0?'#00f5c4':ap<0?'#ff4466':'#f5a623';
+    ctx.fillStyle=col+'33';ctx.fillRect(x,ap>0?mid-bh:mid,bwInner,bh||2);
+    ctx.fillStyle=col;ctx.fillRect(x,ap>0?mid-bh:mid+bh-1.5,bwInner,1.5);
+    // label
+    ctx.fillStyle=col;ctx.font=`bold ${Math.max(7,Math.min(9,bw-3))}px Space Mono,monospace`;ctx.textAlign='center';
+    ctx.fillText(ap,x+bwInner/2,ap>=0?mid-bh-3:mid+bh+9);
+    // p label
+    ctx.fillStyle='#2a3a5a';ctx.font='7px Space Mono,monospace';
+    ctx.fillText(p,x+bwInner/2,H-2);
+  });
+  // Legend
+  ctx.fillStyle='#f5a62366';ctx.font='7px Space Mono,monospace';ctx.textAlign='left';
+  ctx.fillText('--- ±2√p (Hasse)',pad,10);
+}
+
+// ─── LESSON 0 — INTRODUCTION ──────────────────────────
+function renderL0Step(step,body){
+  const cards=[
+    // PAGE 0
+    ()=>`<div class="step-card">
+      <div class="step-card-head"><div class="step-card-num">Page 1 / 5</div><div class="step-card-title">Qu'est-ce qu'une courbe elliptique ?</div></div>
+      <div class="step-card-body">
+        Une <strong>courbe elliptique</strong> est définie par une équation de Weierstrass :
+        ${fbox('y^2 = x^3 + ax + b')}
+        avec ${K('a,b\\in\\mathbb{R}')} et la condition de lissité : le <strong>discriminant</strong>
+        ${fbox('\\Delta = -16(4a^3 + 27b^2) \\neq 0')}
+        Ce n'est pas une ellipse ! Le nom vient des <em>intégrales elliptiques</em> du XIX<sup>e</sup> siècle.
+        <div class="ex"><div class="ex-title">Exemples classiques</div>
+          <span style="color:var(--cyan)">${K('y^2 = x^3 - x')}</span> — deux composantes ${K('(a=-1,\\,b=0)')}<br>
+          <span style="color:var(--purp)">${K('y^2 = x^3 + 1')}</span> — courbe de Mordell ${K('(a=0,\\,b=1)')}<br>
+          <span style="color:var(--gold)">${K('y^2 = x^3 - x + 1')}</span> — courbe lisse typique
+        </div>
+        <div class="note">Quand ${K('\\Delta > 0')} et ${K('a < 0')}, la courbe a deux composantes. Quand ${K('\\Delta < 0')}, une seule branche infinie.</div>
+      </div>
+    </div>
+    <div style="background:var(--panel);border:1px solid var(--bord);border-radius:13px;overflow:hidden;margin-top:-2px;">
+      <canvas id="cvs0a" height="160" style="display:block;width:100%;border-radius:0;"></canvas>
+      <div style="display:flex;gap:12px;padding:8px 12px;font-family:'Space Mono',monospace;font-size:.62rem;color:var(--dim)">
+        <span><span style="color:var(--cyan)">—</span> ${K('y^2=x^3-x')}</span>
+        <span><span style="color:var(--purp)">—</span> ${K('y^2=x^3+1')}</span>
+        <span><span style="color:var(--gold)">—</span> ${K('y^2=x^3-x+1')}</span>
+      </div>
+    </div>`,
+
+    // PAGE 1
+    ()=>`<div class="step-card">
+      <div class="step-card-head"><div class="step-card-num">Page 2 / 5</div><div class="step-card-title">Propriétés géométriques</div></div>
+      <div class="step-card-body">
+        <strong>Symétrie :</strong> si ${K('(x,y)')} est sur la courbe, alors ${K('(x,-y)')} aussi — symétrie par rapport à l'axe des ${K('x')}.
+        <br><br>
+        <strong>Point à l'infini ${K('\\mathcal{O}')} :</strong> on complète la courbe dans le plan projectif.
+        ${fbox('E = \\{(x,y)\\in\\mathbb{R}^2 : y^2=x^3+ax+b\\} \\cup \\{\\mathcal{O}\\}')}
+        <strong>Loi de groupe :</strong> on trace la droite ${K('PQ')}, on cherche son 3<sup>e</sup> point d'intersection avec la courbe, et on le réfléchit par rapport à l'axe des ${K('x')}.
+        <div class="ex"><div class="ex-title">Exemple sur ${K('y^2=x^3-x+1')}</div>
+          ${K('P=(0,1),\\; Q=(1,1)')}, pente ${K('\\lambda = 0')} → droite ${K('y=1')}.<br>
+          Intersection : ${K('x^3-x=0 \\Rightarrow x\\in\\{-1,0,1\\}')}.<br>
+          3<sup>e</sup> point : ${K('(-1,1)')} → réflexion → ${K('P+Q = (-1,-1)').replace('P+Q','\\,P+Q')}.
+        </div>
+        <div class="note">Cette loi est associative et commutative, faisant de ${K('E')} un groupe abélien.</div>
+      </div>
+    </div>`,
+
+    // PAGE 2
+    ()=>`<div class="step-card">
+      <div class="step-card-head"><div class="step-card-num">Page 3 / 5</div><div class="step-card-title">Qu'est-ce que ${K('\\mathbb{F}_p')} ?</div></div>
+      <div class="step-card-body">
+        ${K('\\mathbb{F}_p')} est le <em>corps fini à ${K('p')} éléments</em> (${K('p')} premier) — l'arithmétique modulo ${K('p')} :
+        ${fboxM([
+          '\\mathbb{F}_p = \\{0,\\,1,\\,2,\\,\\ldots,\\,p-1\\}',
+          'a + b \\pmod{p}, \\quad a \\times b \\pmod{p}'
+        ])}
+        Concrètement : c'est l'arithmétique d'une horloge à ${K('p')} heures !
+        <div class="ex"><div class="ex-title">${K('\\mathbb{F}_7')} — l'horloge à 7 heures</div>
+          ${K('3 + 5 = 8 \\equiv 1 \\pmod{7}')}<br>
+          ${K('4 \\times 6 = 24 \\equiv 3 \\pmod{7}')}<br>
+          Inverses : ${K('3 \\times 5 = 15 \\equiv 1 \\pmod{7}')} donc ${K('3^{-1} = 5')}
+        </div>
+        <div class="note">${K('p')} doit être premier pour que tout ${K('a\\neq 0')} ait un inverse — condition pour que ${K('\\mathbb{F}_p')} soit un corps.</div>
+      </div>
+    </div>
+    <div style="background:var(--panel);border:1px solid var(--bord);border-radius:13px;overflow:hidden;margin-top:-2px;">
+      <canvas id="cvs0b" height="130" style="display:block;width:100%;"></canvas>
+      <div style="padding:7px 12px;font-family:'Space Mono',monospace;font-size:.62rem;color:var(--dim)">Table de multiplication de ${K('\\mathbb{F}_7')} (mod 7)</div>
+    </div>`,
+
+    // PAGE 3
+    ()=>`<div class="step-card">
+      <div class="step-card-head"><div class="step-card-num">Page 4 / 5</div><div class="step-card-title">Carrés dans ${K('\\mathbb{F}_p')}</div></div>
+      <div class="step-card-body">
+        Un entier ${K('n')} est un <em>résidu quadratique</em> mod ${K('p')} s'il existe ${K('y')} tel que ${K('y^2 \\equiv n \\pmod{p}')}.
+        <br><br>Le <strong>symbole de Legendre</strong> résume cela :
+        ${fbox('\\left(\\frac{n}{p}\\right) = \\begin{cases} +1 & \\text{si } n \\text{ est un carré non nul mod } p \\\\ -1 & \\text{si } n \\text{ n\'est pas un carré mod } p \\\\ 0 & \\text{si } n \\equiv 0 \\pmod{p} \\end{cases}')}
+        <div class="ex"><div class="ex-title">Carrés dans ${K('\\mathbb{F}_7')}</div>
+          ${K('0^2\\!=\\!0,\\;1^2\\!=\\!1,\\;2^2\\!=\\!4,\\;3^2\\!=\\!2,\\;4^2\\!=\\!2,\\;5^2\\!=\\!4,\\;6^2\\!=\\!1')}<br><br>
+          Carrés mod 7 : ${K('\\{0,1,2,4\\}')}<br>
+          Non-carrés mod 7 : ${K('\\{3,5,6\\}')}
+        </div>
+        <div class="note">Il y a exactement ${K('(p-1)/2')} résidus quadratiques non nuls dans ${K('\\mathbb{F}_p^*')}. En moyenne, la moitié des ${K('x')} donnent des points sur la courbe.</div>
+      </div>
+    </div>`,
+
+    // PAGE 4
+    ()=>`<div class="step-card">
+      <div class="step-card-head"><div class="step-card-num">Page 5 / 5</div><div class="step-card-title">Courbes elliptiques sur ${K('\\mathbb{F}_p')}</div></div>
+      <div class="step-card-body">
+        On cherche les couples ${K('(x,y) \\in \\mathbb{F}_p^2')} vérifiant :
+        ${fbox('y^2 \\equiv x^3 + ax + b \\pmod{p}')}
+        L'ensemble ${K('E(\\mathbb{F}_p)')} (plus ${K('\\mathcal{O}')}) forme un <strong>groupe fini abélien</strong>.
+        <div class="ex"><div class="ex-title">Exemple : ${K('y^2 = x^3+x+1')} sur ${K('\\mathbb{F}_5')}</div>
+          ${K('x=0')} : ${K('\\text{rhs}=1 \\Rightarrow y\\in\\{1,4\\}')} → ${K('(0,1),(0,4)')}<br>
+          ${K('x=1')} : ${K('\\text{rhs}=3')} → aucun (3 non carré mod 5)<br>
+          ${K('x=2')} : ${K('\\text{rhs}\\equiv 1 \\Rightarrow y\\in\\{1,4\\}')} → ${K('(2,1),(2,4)')}<br>
+          ${K('x=3')} : ${K('\\text{rhs}\\equiv 1')} → ${K('(3,1),(3,4)')}<br>
+          ${K('x=4')} : ${K('\\text{rhs}\\equiv 4 \\Rightarrow y\\in\\{2,3\\}')} → ${K('(4,2),(4,3)')}<br><br>
+          ${K('#E(\\mathbb{F}_5) = 8 + 1 = 9')} (8 points affines + ${K('\\mathcal{O}')})
+        </div>
+        <div class="note">Tu es prêt pour le Niveau 1 : calculer ces points toi-même en paramétrant la courbe !</div>
+      </div>
+    </div>`,
+  ];
+  body.innerHTML=cards[step]();
+  if(step===0)setTimeout(drawIntroCanvas,50);
+  if(step===2)setTimeout(drawFpTable,50);
+}
+
+function drawIntroCanvas(){
+  const cv=document.getElementById('cvs0a');if(!cv||!cv.parentElement)return;
+  const dpr=Math.min(devicePixelRatio||1,2),W=cv.parentElement.clientWidth||300,H=160;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.width=W+'px';cv.style.height=H+'px';
+  const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);
+  ctx.fillStyle='#07090f';ctx.fillRect(0,0,W,H);
+  const ox=W/2,oy=H/2,sc=28;
+  // Axes
+  ctx.strokeStyle='#1a2035';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(0,oy);ctx.lineTo(W,oy);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(ox,0);ctx.lineTo(ox,H);ctx.stroke();
+  ctx.fillStyle='#2a3a5a';ctx.font='8px Space Mono,monospace';ctx.textAlign='center';
+  [-3,-2,-1,1,2,3].forEach(i=>{ctx.fillText(i,ox+i*sc,oy+10);ctx.fillText(-i,ox-8,oy+i*sc+3);});
+  // Three curves
+  const curves=[
+    {a:-1,b:0,col:'#00f5c4'},
+    {a:0,b:1,col:'#a855f7'},
+    {a:-1,b:1,col:'#f5a623'},
+  ];
+  curves.forEach(({a,b,col})=>{
+    ctx.strokeStyle=col;ctx.lineWidth=2;ctx.shadowColor=col;ctx.shadowBlur=5;
+    for(let br=0;br<2;br++){ctx.beginPath();let f=true;for(let xi=-W/2/sc-.5;xi<=W/2/sc+.5;xi+=.012){const y2=xi**3+a*xi+b;if(y2<0){f=true;continue;}const y=Math.sqrt(y2)*(br?-1:1);const sx=ox+xi*sc,sy=oy-y*sc;f?ctx.moveTo(sx,sy):ctx.lineTo(sx,sy);f=false;}ctx.stroke();}
+    ctx.shadowBlur=0;
+  });
+}
+
+function drawFpTable(){
+  const cv=document.getElementById('cvs0b');if(!cv||!cv.parentElement)return;
+  const p=7;
+  const dpr=Math.min(devicePixelRatio||1,2),W=cv.parentElement.clientWidth||300,H=130;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.width=W+'px';cv.style.height=H+'px';
+  const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);
+  ctx.fillStyle='#07090f';ctx.fillRect(0,0,W,H);
+  const cell=Math.min(Math.floor((W-24)/p),Math.floor((H-16)/p));
+  const ox=Math.floor((W-cell*p)/2),oy=8;
+  // Draw squares grid — y² mod 7
+  ctx.font=`${Math.min(cell-4,11)}px Space Mono,monospace`;ctx.textAlign='center';
+  for(let y=0;y<p;y++){
+    for(let x=0;x<p;x++){
+      const val=((y*x)%p+p)%p; // multiplication table
+      const isSquare=[0,1,2,4].includes(val);
+      ctx.fillStyle=isSquare?'#00f5c422':'#1a2035';
+      ctx.fillRect(ox+x*cell+1,oy+y*cell+1,cell-2,cell-2);
+      ctx.fillStyle=isSquare?'#00f5c4':'#3a4a6a';
+      ctx.fillText(val,ox+x*cell+cell/2,oy+y*cell+cell/2+4);
+    }
+    // Row label (y)
+    ctx.fillStyle='#3a4a6a';ctx.textAlign='right';ctx.fillText(y,ox-4,oy+y*cell+cell/2+4);ctx.textAlign='center';
+  }
+  // Col labels (x)
+  for(let x=0;x<p;x++){ctx.fillStyle='#3a4a6a';ctx.fillText(x,ox+x*cell+cell/2,oy-2);}
+  // Legend
+  ctx.fillStyle='#00f5c4';ctx.font='8px Space Mono,monospace';ctx.textAlign='left';ctx.fillText('■ carré mod 7',4,H-3);
+  ctx.fillStyle='#3a4a6a';ctx.fillText('■ non-carré',W/2,H-3);
+}
+const PRIMES=[2,3,5,7,11,13,17,19,23];
+function renderL1Step(step,body){
+  if(step===0){
+    body.innerHTML=`<div class="step-card">
+      <div class="step-card-head"><div class="step-card-num">Étape 1 / 5</div><div class="step-card-title">Courbe elliptique sur 𝔽ₚ</div></div>
+      <div class="step-card-body">
+        Une courbe elliptique s'écrit <strong>y² = x³ + ax + b</strong> sur ℝ. Sur le corps fini <strong>𝔽ₚ = {0, 1, …, p−1}</strong>, toutes les opérations se font <em>modulo p</em>.
+        <div class="formula">y² ≡ x³ + ax + b  (mod p)</div>
+        Un point <strong>(x, y)</strong> est sur la courbe si cette congruence est satisfaite. On ajoute le <strong>point à l'infini 𝒪</strong>, élément neutre du groupe.
+        <div class="ex"><div class="ex-title">Exemple : p=5, a=1, b=1</div>x=2 → rhs = 8+2+1 = 11 ≡ 1 (mod 5).<br>1²=1 et 4²=16≡1 (mod 5) → les points (2,1) et (2,4) sont sur la courbe !</div>
+        <div class="note">Contrairement à ℝ, 𝔽ₚ est fini : E(𝔽ₚ) contient un nombre fini de points.</div>
+      </div>
+    </div>`;
+  } else if(step===1){
+    body.innerHTML=`<div class="step-card">
+      <div class="step-card-head"><div class="step-card-num">Étape 2 / 5</div><div class="step-card-title">Comment trouver tous les points ?</div></div>
+      <div class="step-card-body">
+        On teste chaque x ∈ {0,…,p−1} :
+        <div class="formula">Pour chaque x ∈ 𝔽ₚ :<br>① rhs = (x³ + ax + b) mod p<br>② cherche y : y² ≡ rhs (mod p)<br>   teste y = 0, 1, …, p−1<br>③ si y²≡rhs : le point (x,y) est sur E</div>
+        <strong>Combien de y pour un rhs donné ?</strong>
+        <ul><li>rhs = 0 → un seul y = 0 (point de 2-torsion)</li><li>rhs est un carré non nul → deux y (y et p−y)</li><li>rhs n'est pas un carré mod p → aucun y</li></ul>
+        <div class="note">Il y a exactement (p−1)/2 résidus quadratiques non nuls dans 𝔽ₚ* (la moitié des non-nuls).</div>
+      </div>
+    </div>`;
+  } else if(step===2){
+    body.innerHTML=`<div class="step-card">
+      <div class="step-card-head"><div class="step-card-num">Étape 3 / 5</div><div class="step-card-title">Paramètre ta courbe et choisis p</div></div>
+      <div class="step-card-body">La table montre pour chaque x les y tels que y²≡x³+ax+b (mod p).</div>
+      <div class="interact-zone">
+        <div class="iz-title">Choisis p (nombre premier)</div>
+        <div class="p-selector" id="l1psel"></div>
+        <div class="iz-title" style="margin-top:8px">Paramètres a et b (mod p)</div>
+        <div class="param-row"><span class="param-lbl">a</span><input type="range" id="l1ai" min="0" max="12" step="1" value="${l1a}" oninput="updateL1()"><span class="param-val" id="l1av">${l1a}</span></div>
+        <div class="param-row"><span class="param-lbl">b</span><input type="range" id="l1bi" min="0" max="12" step="1" value="${l1b}" oninput="updateL1()"><span class="param-val" id="l1bv">${l1b}</span></div>
+        <div style="font-family:'Space Mono',monospace;font-size:.7rem;color:var(--cyan);margin:6px 0;text-align:center" id="l1eqlbl">y² ≡ x³ + ${l1a}x + ${l1b}  (mod ${l1p})</div>
+        <div class="pts-table-wrap" id="l1tbl"></div>
+        <div style="font-family:'Space Mono',monospace;font-size:.73rem;margin-top:7px;">#E(𝔽ₚ) = <span style="color:var(--cyan)" id="l1cnt">…</span> (avec 𝒪)</div>
+      </div>
+    </div>`;
+    buildPSel('l1psel',l1p,p=>{l1p=p;updateL1();});buildL1Table();
+  } else if(step===3){
+    body.innerHTML=`<div class="step-card">
+      <div class="step-card-head"><div class="step-card-num">Étape 4 / 5</div><div class="step-card-title">Points mod p sur la courbe réelle</div></div>
+      <div class="step-card-body">
+        On représente les points de E(𝔽ₚ) directement sur la <strong>courbe réelle</strong> y²=x³+ax+b. Les coordonnées x ∈ {0,…,p−1} sont placées sur l'axe réel, et chaque point est dessiné à sa position réelle.
+        <div class="note">Les points mod p peuvent sembler « épars » sur la courbe réelle — c'est normal ! Ils vivent dans 𝔽ₚ, pas dans ℝ. La symétrie (x,y) ↔ (x,−y) reste visible.</div>
+      </div>
+      <div class="interact-zone">
+        <div class="iz-title">Courbe : <span id="l1eq3" style="color:var(--cyan)"></span></div>
+        <canvas id="cvs3" height="200"></canvas>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;font-family:'Space Mono',monospace;font-size:.63rem;color:var(--dim)">
+          <span><span style="color:var(--cyan)">●</span> point (x,y) avec y&gt;0</span>
+          <span><span style="color:var(--purp)">●</span> point (x,p−y)</span>
+          <span><span style="color:var(--gold)">●</span> y=0 (2-torsion)</span>
+        </div>
+        <div style="font-family:'Space Mono',monospace;font-size:.73rem;margin-top:7px;">#E(𝔽ₚ) = <span style="color:var(--cyan)" id="l1cnt3">…</span> (avec 𝒪)</div>
+      </div>
+    </div>`;
+    document.getElementById('l1eq3').textContent=`y²≡x³+${md(l1a,l1p)}x+${md(l1b,l1p)} (mod ${l1p})`;
+    drawL1CurvePoints();
+  } else {
+    const pts=getPts(md(l1a,l1p),md(l1b,l1p),l1p).filter(p=>p.x!==null);
+    const count=pts.length+1;
+    body.innerHTML=`<div class="step-card">
+      <div class="step-card-head"><div class="step-card-num">Étape 5 / 5</div><div class="step-card-title">Résumé</div></div>
+      <div class="step-card-body">
+        <div class="formula">E : y² ≡ x³ + ${md(l1a,l1p)}x + ${md(l1b,l1p)}  (mod ${l1p})<br>#E(𝔽${l1p}) = ${count} points (avec 𝒪)</div>
+        Tu viens de calculer tous les points de E sur 𝔽<sub>${l1p}</sub> !
+        <ul style="margin:8px 0 8px 15px;font-size:.78rem;line-height:1.9;">
+          <li>Premier choisi : <strong style="color:var(--cyan)">p = ${l1p}</strong></li>
+          <li>Courbe : a = <strong style="color:var(--purp)">${md(l1a,l1p)}</strong>, b = <strong style="color:var(--purp)">${md(l1b,l1p)}</strong></li>
+          <li>${l1p} valeurs de x testées → <strong style="color:var(--cyan)">${count} points</strong></li>
+        </ul>
+        <div class="ex"><div class="ex-title">Théorème de Hasse (niveau 4)</div>|#E(𝔽ₚ)−(p+1)| ≤ 2√p<br>Ici : |${count}−${l1p+1}| = ${Math.abs(count-l1p-1)} ≤ 2√${l1p} ≈ ${(2*Math.sqrt(l1p)).toFixed(2)} ${Math.abs(count-l1p-1)<=(2*Math.sqrt(l1p))?'✓':'⚠️'}</div>
+        <div class="note">Au niveau 2, tu apprendras à <em>additionner</em> ces points avec la loi de groupe mod p !</div>
+      </div>
+    </div>`;
+  }
+}
+
+function buildPSel(id,current,cb){
+  const el=document.getElementById(id);if(!el)return;
+  el.innerHTML='';
+  PRIMES.forEach(p=>{const b=document.createElement('button');b.className='p-btn'+(p===current?' sel':'');b.textContent=p;b.onclick=()=>{document.querySelectorAll(`#${id} .p-btn`).forEach(x=>x.classList.remove('sel'));b.classList.add('sel');cb(p);};el.appendChild(b);});
+}
+
+function updateL1(){
+  const ea=document.getElementById('l1ai'),eb=document.getElementById('l1bi');if(!ea)return;
+  l1a=+ea.value;l1b=+eb.value;
+  const av=document.getElementById('l1av'),bv=document.getElementById('l1bv');if(av)av.textContent=l1a;if(bv)bv.textContent=l1b;
+  const eq=document.getElementById('l1eqlbl');if(eq)eq.textContent=`y² ≡ x³ + ${md(l1a,l1p)}x + ${md(l1b,l1p)}  (mod ${l1p})`;
+  buildL1Table();
+}
+
+function buildL1Table(){
+  const el=document.getElementById('l1tbl');if(!el)return;
+  const p=l1p,a=md(l1a,p),b=md(l1b,p);
+  let html=`<table class="pts-table"><thead><tr><th>x</th>`;
+  for(let x=0;x<p;x++)html+=`<th>${x}</th>`;
+  html+=`</tr></thead><tbody><tr><th style="color:var(--dim)">rhs</th>`;
+  for(let x=0;x<p;x++)html+=`<td style="color:var(--purp)">${md(x**3+a*x+b,p)}</td>`;
+  html+=`</tr><tr><th style="color:var(--dim)">y</th>`;
+  let total=0;
+  for(let x=0;x<p;x++){
+    const rhs=md(x**3+a*x+b,p),ys=[];for(let y=0;y<p;y++)if(md(y*y,p)===rhs)ys.push(y);
+    total+=ys.length;
+    if(!ys.length)html+=`<td class="off">—</td>`;
+    else if(ys[0]===0)html+=`<td class="zero">${ys.join(',')}</td>`;
+    else html+=`<td class="on">${ys.join(',')}</td>`;
+  }
+  html+=`</tr></tbody></table>`;
+  el.innerHTML=html;
+  const cnt=document.getElementById('l1cnt');if(cnt)cnt.textContent=total+1;
+}
+
+function drawL1CurvePoints(){
+  const cv=document.getElementById('cvs3');if(!cv||!cv.parentElement)return;
+  const dpr=Math.min(devicePixelRatio||1,2),W=cv.parentElement.clientWidth||300,H=200;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.width=W+'px';cv.style.height=H+'px';
+  const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);
+  const p=l1p,a=md(l1a,p),b=md(l1b,p);
+
+  // Determine view from points
+  const pts=getPts(a,b,p).filter(pt=>pt.x!==null);
+  // Real coords: x is just x (0..p-1), y_real = sqrt(x^3+a_real*x+b_real)
+  // We use a real curve scaled to look nice
+  const a_r=a,b_r=b;
+  const xMin=-0.5,xMax=p-0.5+0.5;
+  // y range from curve
+  let yMin=-p*.6,yMax=p*.6;
+  const wx=x=>(x-xMin)/(xMax-xMin)*W,wy=y=>H/2-(y/(yMax))*H/2;
+
+  ctx.fillStyle='#07090f';ctx.fillRect(0,0,W,H);
+
+  // Grid
+  ctx.strokeStyle='#0d1117';ctx.lineWidth=.7;
+  for(let xi=0;xi<p;xi++){ctx.beginPath();ctx.moveTo(wx(xi),0);ctx.lineTo(wx(xi),H);ctx.stroke();}
+
+  // Axes
+  ctx.strokeStyle='#1a2035';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(wx(0),0);ctx.lineTo(wx(0),H);ctx.stroke();
+
+  // Real curve — use real a,b values
+  ctx.strokeStyle='#00f5c4';ctx.lineWidth=2;ctx.shadowColor='#00f5c4';ctx.shadowBlur=6;
+  for(let br=0;br<2;br++){
+    ctx.beginPath();let f=true;
+    for(let xi=xMin;xi<=xMax;xi+=.02){
+      const y2=xi*xi*xi+a_r*xi+b_r;if(y2<0){f=true;continue;}
+      const yi=Math.sqrt(y2)*(br?-1:1);
+      if(f){ctx.moveTo(wx(xi),wy(yi));f=false;}else ctx.lineTo(wx(xi),wy(yi));
+    }ctx.stroke();
+  }
+  ctx.shadowBlur=0;
+
+  // Draw modular points ON the real curve
+  pts.forEach(pt=>{
+    const x=pt.x; // x ∈ {0,..,p-1}
+    const rhs_r=x*x*x+a_r*x+b_r;
+    if(rhs_r<0)return; // can't show on real curve if no real y
+    const y_real=Math.sqrt(rhs_r);
+    // Determine which branch: use pt.y to decide
+    // pt.y is modular y; compare to p/2: if pt.y <= p/2 → positive branch
+    const isPositive=pt.y===0||pt.y<=p/2;
+    const yr=isPositive?y_real:-y_real;
+    const sx=wx(x),sy=wy(yr);
+    if(sy<0||sy>H)return;
+
+    const col=pt.y===0?'#f5a623':isPositive?'#00f5c4':'#a855f7';
+    ctx.save();
+    ctx.beginPath();ctx.arc(sx,sy,5.5,0,Math.PI*2);
+    ctx.fillStyle=col+'33';ctx.fill();
+    ctx.beginPath();ctx.arc(sx,sy,4,0,Math.PI*2);
+    ctx.fillStyle=col;ctx.shadowColor=col;ctx.shadowBlur=8;ctx.fill();ctx.shadowBlur=0;
+    ctx.fillStyle=col;ctx.font='bold 8px Space Mono,monospace';ctx.textAlign='center';
+    ctx.fillText(`(${x},${pt.y})`,sx,sy+(isPositive?-10:10));
+    ctx.restore();
+  });
+
+  // x-axis labels
+  ctx.fillStyle='#2a3a5a';ctx.font='8px Space Mono,monospace';ctx.textAlign='center';
+  for(let i=0;i<p;i++)ctx.fillText(i,wx(i),H-3);
+  ctx.fillStyle='#3a4a6a';ctx.font='8px Space Mono,monospace';ctx.textAlign='left';
+  ctx.fillText(`E(𝔽${p}) sur la courbe réelle`,4,12);
+
+  const cnt=document.getElementById('l1cnt3');if(cnt)cnt.textContent=pts.length+1+' (avec 𝒪)';
+}
+
+// ─── LESSON 2 STEPS ───────────────────────────────────
+function renderL2Step(step,body){
+  if(step===0){
+    body.innerHTML=`<div class="step-card">
+      <div class="step-card-head"><div class="step-card-num">Étape 1 / 4</div><div class="step-card-title">Définition des coefficients ${K('a_p')}</div></div>
+      <div class="step-card-body">
+        Pour chaque premier ${K('p')} de <em>bonne réduction</em>, on définit :
+        ${fbox('a_p = p + 1 - \\#E(\\mathbb{F}_p)')}
+        C'est la <em>déviation</em> par rapport à la valeur attendue ${K('p+1')} — le «défaut» ou «excès» de points.
+        <br><br>
+        <strong>Pourquoi ${K('p+1')} ?</strong> En moyenne sur toutes les courbes, on s'attend à ${K('\\approx p+1')} points sur ${K('\\mathbb{F}_p')}. Le coefficient ${K('a_p')} mesure l'écart.
+        <div class="ex"><div class="ex-title">Exemple 1 : ${K('y^2 = x^3+x+1')} sur ${K('\\mathbb{F}_5')}</div>
+          Compte : ${K('\\#E(\\mathbb{F}_5) = 9')} (8 pts affines + ${K('\\mathcal{O}')}).<br>
+          ${K('a_5 = 5 + 1 - 9 = \\mathbf{-3}')}
+        </div>
+        <div class="ex"><div class="ex-title">Exemple 2 : ${K('y^2 = x^3 - x')} sur ${K('\\mathbb{F}_7')}</div>
+          ${K('\\#E(\\mathbb{F}_7) = 8')} → ${K('a_7 = 7 + 1 - 8 = \\mathbf{0}')}<br>
+          <span style="font-size:.7rem;color:var(--dim)">${K('a_7 = 0')} : la courbe a exactement le nombre «moyen» de points !</span>
+        </div>
+        <div class="note">Le théorème de Hasse garantit ${K('|a_p| \\leq 2\\sqrt{p}')} pour tout ${K('p')} de bonne réduction.</div>
+      </div>
+    </div>`;
+  } else if(step===1){
+    body.innerHTML=`<div class="step-card">
+      <div class="step-card-head"><div class="step-card-num">Étape 2 / 4</div><div class="step-card-title">Comment calculer ${K('a_p')} ?</div></div>
+      <div class="step-card-body">
+        En 3 étapes :
+        ${fboxM([
+          '\\text{① Choisir un premier } p \\text{ (bonne réduction : } p \\nmid \\Delta\\text{)}',
+          '\\text{② Compter } \\#E(\\mathbb{F}_p) = \\#\\{(x,y)\\in\\mathbb{F}_p^2 : y^2\\equiv x^3+ax+b\\} + 1',
+          '\\text{③ Calculer } a_p = p + 1 - \\#E(\\mathbb{F}_p)'
+        ])}
+        Via le <strong>symbole de Legendre</strong> :
+        ${fbox('a_p = -\\sum_{x=0}^{p-1} \\left(\\frac{x^3+ax+b}{p}\\right)')}
+        où ${K('\\bigl(\\frac{n}{p}\\bigr) = +1')} si ${K('n')} est un carré, ${K('-1')} sinon, ${K('0')} si ${K('n\\equiv 0')}.
+        <div class="ex"><div class="ex-title">Résumé : contribution de chaque ${K('x')}</div>
+          ${K('\\text{rhs}=0')} → 1 point<br>
+          ${K('\\text{rhs}')} carré non nul → 2 points<br>
+          ${K('\\text{rhs}')} non-carré → 0 point
+        </div>
+        <div class="note">Cette formule permet de calculer ${K('a_p')} sans lister tous les points — particulièrement efficace pour les grands ${K('p')}.</div>
+      </div>
+    </div>`;
+  } else if(step===2){
+    body.innerHTML=`<div class="step-card">
+      <div class="step-card-head"><div class="step-card-num">Étape 3 / 4</div><div class="step-card-title">Calcule les ${K('a_p')} de ta courbe</div></div>
+      <div class="step-card-body">Paramètre une courbe et observe comment les ${K('a_p')} varient selon les premiers ${K('p')}.</div>
+      <div class="interact-zone">
+        <div class="iz-title">Paramètres de la courbe</div>
+        <div class="param-row"><span class="param-lbl">a</span><input type="range" id="l2ai2" min="0" max="10" step="1" value="${l2a}" oninput="updateApTable()"><span class="param-val" id="l2av2">${l2a}</span></div>
+        <div class="param-row"><span class="param-lbl">b</span><input type="range" id="l2bi2" min="0" max="10" step="1" value="${l2b}" oninput="updateApTable()"><span class="param-val" id="l2bv2">${l2b}</span></div>
+        <div style="font-family:'Space Mono',monospace;font-size:.7rem;color:var(--cyan);margin:6px 0;text-align:center" id="l2eq2lbl">y² = x³ + ${l2a}x + ${l2b}</div>
+        <div class="iz-title" style="margin-top:8px">Table des ${K('a_p')}</div>
+        <div id="apTableWrap"></div>
+        <canvas id="cvs_ap" height="110" style="display:block;width:100%;border-radius:8px;margin-top:8px;"></canvas>
+        <div style="display:flex;gap:10px;margin-top:5px;font-family:'Space Mono',monospace;font-size:.62rem;color:var(--dim)">
+          <span><span style="color:var(--cyan)">▲</span> ${K('a_p > 0')}</span>
+          <span><span style="color:var(--red)">▼</span> ${K('a_p < 0')}</span>
+          <span><span style="color:var(--gold)">—</span> ${K('a_p = 0')}</span>
+          <span><span style="color:var(--gold)">···</span> borne ${K('\\pm 2\\sqrt{p}')}</span>
+        </div>
+      </div>
+    </div>`;
+    setTimeout(()=>{updateApTable();},30);
+  } else {
+    body.innerHTML=`<div class="step-card">
+      <div class="step-card-head"><div class="step-card-num">Étape 4 / 4</div><div class="step-card-title">Propriétés et rôle des ${K('a_p')}</div></div>
+      <div class="step-card-body">
+        <strong>① Inégalité de Hasse-Weil</strong>
+        ${fbox('|a_p| \\leq 2\\sqrt{p} \\quad \\text{pour tout } p \\text{ de bonne réduction}')}
+        Les racines du polynôme ${K('1 - a_p T + pT^2')} ont module ${K('p^{-1/2}')}.
+        <br><br>
+        <strong>② Multiplicativité</strong>
+        ${fboxM([
+          '\\gcd(m,n)=1 \\Rightarrow a_{mn} = a_m \\cdot a_n',
+          'a_{p^k} = a_p \\cdot a_{p^{k-1}} - p \\cdot a_{p^{k-2}}'
+        ])}
+        La suite ${K('(a_n)')} est entièrement déterminée par les ${K('a_p')} !
+        <br><br>
+        <strong>③ Trace du Frobenius</strong>
+        ${fbox('a_p = \\mathrm{tr}(\\mathrm{Frob}_p \\mid T_\\ell(E)) = \\alpha + \\bar{\\alpha}')}
+        où ${K('\\alpha,\\bar{\\alpha}')} sont les valeurs propres du Frobenius, avec ${K('|\\alpha|=|\\bar{\\alpha}|=\\sqrt{p}')}.
+        <div class="ex"><div class="ex-title">Courbe E11a1 — premiers ${K('a_p')}</div>
+          ${K('a_2=-2,\\; a_3=-1,\\; a_5=1,\\; a_7=-2,\\; a_{11}=0,\\; a_{13}=4')}<br>
+          Ces coefficients encodent toute l'arithmétique de la courbe. Au niveau 3, tu verras comment ils construisent la <strong>fonction ${K('L(E,s)')}</strong>.
+        </div>
+        <div class="note">Les ${K('a_p')} d'une courbe elliptique coïncident avec les coefficients de Fourier d'une forme modulaire — c'est le théorème de modularité de Wiles (1995) !</div>
+      </div>
+    </div>`;
+  }
+}
+
+// ─── LESSON 3 — FONCTIONS L ELLIPTIQUES ───────────────
+let l3step=0,l3done=false;
+
+function renderL3Step(step,body){
+  if(step===0){
+    body.innerHTML=`<div class="step-card">
+      <div class="step-card-head"><div class="step-card-num">Étape 1 / 5</div><div class="step-card-title">Définition de la fonction L</div></div>
+      <div class="step-card-body">
+        La <strong>fonction L d'une courbe elliptique</strong> E est une série de Dirichlet construite à partir des coefficients aₚ :
+        <div class="formula">L(E, s) = ∑_{n=1}^{∞} aₙ / nˢ</div>
+        où les coefficients aₙ sont définis pour tout entier n par multiplicativité à partir des aₚ. Elle s'écrit aussi comme un <strong>produit eulérien</strong> :
+        <div class="formula">L(E, s) = ∏_{p ∤ N} (1 − aₚ·p⁻ˢ + p¹⁻²ˢ)⁻¹ · ∏_{p | N} Lₚ(E,s)⁻¹</div>
+        <ul>
+          <li><strong>N</strong> = conducteur de la courbe (mesure la ramification)</li>
+          <li><strong>p ∤ N</strong> = premiers de bonne réduction (facteur de degré 2)</li>
+          <li><strong>p | N</strong> = premiers de mauvaise réduction (facteur simplifié)</li>
+        </ul>
+        <div class="ex"><div class="ex-title">Exemple : E11a1 (y²+y=x³−x², N=11)</div>
+          L(E,s) = (1+2·2⁻ˢ+2·2⁻²ˢ+…)⁻¹·(1+1·3⁻ˢ+3·3⁻²ˢ+…)⁻¹·…<br>
+          Les premiers termes : L(E,s) = 1−2·2⁻ˢ−3⁻ˢ+2·4⁻ˢ+5⁻ˢ−2·6⁻ˢ−2·7⁻ˢ+…<br>
+          <span style="color:var(--dim);font-size:.7rem">a₂=−2, a₃=−1, a₄=2, a₅=1, a₆=2, a₇=−2…</span>
+        </div>
+        <div class="note">La série converge absolument pour Re(s) &gt; 3/2. Elle se prolonge analytiquement à tout ℂ grâce à l'équation fonctionnelle.</div>
+      </div>
+    </div>`;
+  } else if(step===1){
+    body.innerHTML=`<div class="step-card">
+      <div class="step-card-head"><div class="step-card-num">Étape 2 / 5</div><div class="step-card-title">L'équation fonctionnelle</div></div>
+      <div class="step-card-body">
+        En complétant L(E,s) par un facteur gamma et une puissance de N, on obtient la <strong>L-fonction complétée</strong> :
+        <div class="formula">Λ(E, s) = (√N / 2π)ˢ · Γ(s) · L(E, s)</div>
+        où Γ(s) = ∫₀^∞ tˢ⁻¹ e⁻ᵗ dt est la fonction gamma d'Euler.
+        <br><br>
+        Cette fonction satisfait une <strong>équation fonctionnelle</strong> symétrique :
+        <div class="formula">Λ(E, 2−s) = ε · Λ(E, s)</div>
+        où <strong>ε = ±1</strong> est le <em>signe</em> de la courbe.
+        <div class="ex"><div class="ex-title">Le signe ε et ses conséquences</div>
+          <strong>ε = +1 :</strong> symétrie autour de s=1. La fonction peut avoir une valeur non nulle en s=1.<br><br>
+          <strong>ε = −1 :</strong> antisymétrie. L(E,1) = 0 obligatoirement ! Le rang de E est ≥1 (d'après BSD).
+        </div>
+        <div class="ex"><div class="ex-title">Exemples de signes</div>
+          E11a1 (rang 0) : ε = −1, mais L(E,1) ≠ 0 → zéro d'ordre 0<br>
+          E37a1 (rang 1) : ε = +1, et L(E,1) = 0, L'(E,1) ≠ 0<br>
+          E389a1 (rang 2) : ε = −1, et L(E,1)=0, L'(E,1)=0, L''(E,1)≠0
+        </div>
+        <div class="note">Le signe ε est calculable à partir du conducteur N et de quelques invariants locaux. Il prédit la parité du rang (conjecture de parité).</div>
+      </div>
+    </div>`;
+  } else if(step===2){
+    body.innerHTML=`<div class="step-card">
+      <div class="step-card-head"><div class="step-card-num">Étape 3 / 5</div><div class="step-card-title">Calcul interactif de L(E,s)</div></div>
+      <div class="step-card-body">
+        On approche L(E,s) par une somme partielle. Choisis une courbe et une valeur de s réelle pour voir la série de Dirichlet se construire.
+      </div>
+      <div class="interact-zone">
+        <div class="iz-title">Choisir une courbe connue</div>
+        <div class="p-selector" id="l3curvesel" style="flex-wrap:wrap;"></div>
+        <div style="font-family:'Space Mono',monospace;font-size:.68rem;color:var(--cyan);margin:6px 0;text-align:center" id="l3curveeq">E11a1 : y²+y=x³−x²</div>
+        <div class="iz-title" style="margin-top:8px">Valeur de s</div>
+        <div class="param-row">
+          <span class="param-lbl" style="width:20px">s</span>
+          <input type="range" id="l3s" min="1.1" max="3" step="0.05" value="1.5" oninput="updateLseries()">
+          <span class="param-val" id="l3sv" style="width:32px">1.5</span>
+        </div>
+        <div class="compute-box" id="l3comp" style="margin-top:8px;line-height:1.9;font-size:.7rem;"></div>
+        <canvas id="cvs_l" height="100" style="display:block;width:100%;border-radius:8px;margin-top:8px;"></canvas>
+        <div style="font-family:'Space Mono',monospace;font-size:.62rem;color:var(--dim);margin-top:4px">Convergence de la série partielle ∑ aₙ/nˢ (N premiers termes)</div>
+      </div>
+    </div>`;
+    setTimeout(initL3Calc,30);
+  } else if(step===3){
+    body.innerHTML=`<div class="step-card">
+      <div class="step-card-head"><div class="step-card-num">Étape 4 / 5</div><div class="step-card-title">La conjecture de Birch et Swinnerton-Dyer</div></div>
+      <div class="step-card-body">
+        La <strong>conjecture BSD</strong> est l'un des 7 problèmes du millénaire (prix : 1 million $). Elle relie L(E,s) à la structure arithmétique de E.
+        <br><br>
+        <strong>Énoncé (version faible) :</strong>
+        <div class="formula">ord_{s=1} L(E,s) = rang E(ℚ)</div>
+        L'ordre du zéro de L en s=1 est exactement le rang de la courbe !
+        <br><br>
+        <strong>Énoncé (version forte) :</strong>
+        <div class="formula">lim_{s→1} L(E,s)/(s−1)^r = Ω · R · |Ш| · ∏cₚ / |E(ℚ)ₜₒᵣ|²</div>
+        où r=rang(E), Ω=période réelle, R=régulateur de Néron-Tate, Ш=groupe de Tate-Shafarevich, cₚ=nombres de Tamagawa.
+        <div class="ex"><div class="ex-title">Vérifications connues</div>
+          <span style="color:var(--cyan)">✓</span> E11a1 (rang 0) : L(E,1)≈0.2538≠0 → BSD prédit rang=0 ✓<br>
+          <span style="color:var(--cyan)">✓</span> E37a1 (rang 1) : L(E,1)=0, L'(E,1)≈0.153≠0 → rang=1 ✓<br>
+          <span style="color:var(--cyan)">✓</span> E389a1 (rang 2) : zéro double → rang=2 ✓<br>
+          <span style="color:var(--gold)">?</span> Le cas général reste une conjecture ouverte !
+        </div>
+        <div class="note">Kolyvagin (1990) prouve BSD pour les courbes de rang 0 ou 1 avec ε=+1 grâce aux <em>systèmes d'Euler</em>. Le cas rang ≥ 2 est entièrement ouvert.</div>
+      </div>
+    </div>`;
+  } else {
+    body.innerHTML=`<div class="step-card">
+      <div class="step-card-head"><div class="step-card-num">Étape 5 / 5</div><div class="step-card-title">Théorèmes et connexions</div></div>
+      <div class="step-card-body">
+        <strong>① Théorème de modularité (Wiles–Taylor, 1995–2001)</strong>
+        <div class="formula">Toute courbe elliptique E/ℚ est modulaire :<br>∃ f ∈ S₂(Γ₀(N)), forme propre, telle que L(E,s) = L(f,s)</div>
+        Les aₙ de E sont les coefficients de Fourier de f. Ce théorème implique le dernier théorème de Fermat.
+        <br><br>
+        <strong>② Inégalité de Ramanujan–Deligne</strong>
+        <div class="formula">|aₚ| ≤ 2√p  ⟺  les racines de 1−aₚT+pT² ont module p⁻¹/²</div>
+        Prouvé par Deligne en 1974 via la cohomologie étale (médaille Fields).
+        <br><br>
+        <strong>③ Hypothèse de Riemann généralisée (GRH)</strong>
+        <div class="formula">Les zéros non-triviaux de L(E,s) ont Re(s) = 1</div>
+        Analogue à l'hypothèse de Riemann classique. Toujours ouverte.
+        <br><br>
+        <strong>④ Formule du conducteur</strong>
+        <div class="formula">N = ∏_p p^{fₚ},  fₚ = nombre de Artin local en p</div>
+        <div class="ex"><div class="ex-title">Tableau de synthèse</div>
+          <span style="color:var(--cyan)">E11a1</span> : N=11, rang=0, ε=−1, L(E,1)≈0.254<br>
+          <span style="color:var(--purp)">E37a1</span> : N=37, rang=1, ε=+1, L(E,1)=0<br>
+          <span style="color:var(--gold)">E389a1</span> : N=389, rang=2, ε=−1, zéro d'ordre 2<br>
+          <span style="color:var(--red)">E5077a1</span> : N=5077, rang=3, ε=−1, zéro d'ordre 3
+        </div>
+        <div class="note">Explore la rubrique <strong>Oracle Modulaire</strong> du menu pour voir les aₚ, la q-expansion et la L-fonction de ces courbes en détail !</div>
+      </div>
+    </div>`;
+  }
+}
+
+// ── L-series interactive calculator ──
+const L3_CURVES=[
+  {name:'E11a1',eq:'y²+y=x³−x²',ap:{2:-2,3:-1,5:1,7:-2,11:0,13:4,17:-2,19:0,23:-1,29:0,31:7,37:-8,41:0,43:-6,47:0}},
+  {name:'E37a1',eq:'y²+y=x³−x²−7x',ap:{2:0,3:-2,5:0,7:-2,11:0,13:6,17:0,19:-4,23:-4,29:2,31:-4,37:0,41:2,43:-2,47:-2}},
+  {name:'E27a1',eq:'y²=x³+1',ap:{2:0,3:0,5:0,7:-2,11:0,13:4,17:0,19:-2,23:0,29:0,31:4,37:2,41:0,43:4,47:0}},
+];
+let l3curveIdx=0,l3s=1.5;
+
+function initL3Calc(){
+  const sel=document.getElementById('l3curvesel');if(!sel)return;
+  sel.innerHTML='';
+  L3_CURVES.forEach((c,i)=>{
+    const b=document.createElement('button');b.className='p-btn'+(i===l3curveIdx?' sel':'');
+    b.textContent=c.name;
+    b.onclick=()=>{l3curveIdx=i;sel.querySelectorAll('.p-btn').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');
+      document.getElementById('l3curveeq').textContent=`${c.name} : ${c.eq}`;updateLseries();};
+    sel.appendChild(b);
+  });
+  updateLseries();
+}
+
+function buildAn(ap,maxN){
+  // Build a_n by multiplicativity for n up to maxN
+  const an=new Array(maxN+1).fill(0);an[1]=1;
+  const primes=[2,3,5,7,11,13,17,19,23,29,31,37,41,43,47].filter(p=>p<=maxN);
+  // For each prime, set ap values
+  primes.forEach(p=>{if(ap[p]!==undefined)an[p]=ap[p];});
+  // Multiplicativity: a(mn) = a(m)*a(n) if gcd(m,n)=1
+  for(let n=2;n<=maxN;n++){
+    if(an[n]!==0)continue;
+    // factor n
+    for(let p=2;p<=n;p++){
+      if(n%p===0&&an[n]===0){
+        const m=n/p;
+        if(m===1){break;}
+        // Check if p divides m
+        if(m%p===0){
+          // n = p^k * r — use recurrence if prime power
+          // a(p^k) = a(p)*a(p^(k-1)) - p*a(p^(k-2))
+          // simplified: skip for now, just use 0
+          an[n]=0;
+        } else {
+          // gcd(p,m)=1 → a(n)=a(p)*a(m)
+          if(an[m]!==0||m===1)an[n]=(an[p]||0)*(an[m]||1);
+        }
+        break;
+      }
+    }
+  }
+  return an;
+}
+
+function updateLseries(){
+  const sv=document.getElementById('l3s');if(!sv)return;
+  l3s=+sv.value;document.getElementById('l3sv').textContent=l3s.toFixed(2);
+  const curve=L3_CURVES[l3curveIdx],maxN=40;
+  const an=buildAn(curve.ap,maxN);
+  let partial=0,terms=[];
+  for(let n=1;n<=maxN;n++){
+    if(an[n]===0)continue;
+    const contrib=an[n]/Math.pow(n,l3s);partial+=contrib;
+    if(n<=12){const sign=an[n]>=0?'+':'-';const abs=Math.abs(an[n]);terms.push(`<span style="color:${an[n]>0?'var(--cyan)':'var(--red)'}">${sign}${abs===1?'':abs}/${n}^s</span>`);}
+  }
+  const comp=document.getElementById('l3comp');if(!comp)return;
+  comp.innerHTML=`<span style="color:var(--dim)">L(E,s) ≈ 1 </span>${terms.slice(1).join(' ')}<span style="color:var(--dim)"> + …</span><br>
+<span style="color:var(--dim)">Pour s = ${l3s.toFixed(2)} :</span> <span style="color:var(--gold)">L(E,${l3s.toFixed(2)}) ≈ ${partial.toFixed(5)}</span>`;
+  drawLconv(an,maxN);
+}
+
+function drawLconv(an,maxN){
+  const cv=document.getElementById('cvs_l');if(!cv||!cv.parentElement)return;
+  const dpr=Math.min(devicePixelRatio||1,2),W=cv.parentElement.clientWidth||300,H=100;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.width=W+'px';cv.style.height=H+'px';
+  const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);
+  ctx.fillStyle='#07090f';ctx.fillRect(0,0,W,H);
+  // Compute running sum
+  const sums=[];let sum=0;
+  for(let n=1;n<=maxN;n++){sum+=an[n]/Math.pow(n,l3s);sums.push(sum);}
+  const minS=Math.min(...sums),maxS=Math.max(...sums);
+  const range=maxS-minS||0.01;
+  const pad=10;
+  const sx=n=>(n-1)/(maxN-1)*(W-2*pad)+pad;
+  const sy=v=>H-pad-(v-minS)/range*(H-2*pad);
+  // Zero line
+  ctx.strokeStyle='#1a2035';ctx.lineWidth=1;
+  const zy=sy(0);if(zy>=pad&&zy<=H-pad){ctx.beginPath();ctx.moveTo(pad,zy);ctx.lineTo(W-pad,zy);ctx.stroke();}
+  // Convergence line (final value)
+  const finalVal=sums[sums.length-1];
+  ctx.strokeStyle='#f5a62344';ctx.lineWidth=1;ctx.setLineDash([3,3]);
+  const fvy=sy(finalVal);ctx.beginPath();ctx.moveTo(pad,fvy);ctx.lineTo(W-pad,fvy);ctx.stroke();ctx.setLineDash([]);
+  // Series curve
+  ctx.strokeStyle='#00f5c4';ctx.lineWidth=2;ctx.shadowColor='#00f5c4';ctx.shadowBlur=4;
+  ctx.beginPath();
+  sums.forEach((v,i)=>{i===0?ctx.moveTo(sx(i+1),sy(v)):ctx.lineTo(sx(i+1),sy(v));});
+  ctx.stroke();ctx.shadowBlur=0;
+  // Labels
+  ctx.fillStyle='#3a4a6a';ctx.font='7px Space Mono,monospace';ctx.textAlign='left';
+  ctx.fillText(`Σ aₙ/nˢ (s=${l3s.toFixed(1)}, N=1..${maxN})`,pad,10);
+  ctx.textAlign='right';ctx.fillStyle='#f5a623';
+  ctx.fillText(`≈${finalVal.toFixed(4)}`,W-pad,fvy-3);
+}
+
+function updateL2(){
+  const ea=document.getElementById('l2ai'),eb=document.getElementById('l2bi');if(!ea)return;
+  l2a=+ea.value;l2b=+eb.value;
+  const av=document.getElementById('l2av'),bv=document.getElementById('l2bv');if(av)av.textContent=l2a;if(bv)bv.textContent=l2b;
+  const a=md(l2a,l2p),b=md(l2b,l2p);
+  const eq=document.getElementById('l2eqlbl');if(eq)eq.textContent=`y² ≡ x³ + ${a}x + ${b}  (mod ${l2p})`;
+  l2P=null;l2Q=null;buildL2PointPicker(a,b);
+}
+
+function buildL2PointPicker(a,b){
+  const row=document.getElementById('l2ptrow');if(!row)return;
+  const pts=getPts(a,b,l2p).filter(p=>p.x!==null);
+  if(pts.length===0){row.innerHTML=`<div style="color:var(--dim);font-size:.75rem;font-family:'Space Mono',monospace;padding:8px">Aucun point affine sur cette courbe (+ 𝒪)</div>`;return;}
+  const mkBox=(id,label,col)=>{
+    const box=document.createElement('div');box.className='l2-pt-box';box.id=id;
+    const lbl=document.createElement('div');lbl.className='pt-label';lbl.textContent=label;
+    const coord=document.createElement('div');coord.className='pt-coord';coord.style.color=col;coord.textContent='…';
+    const pick=document.createElement('div');pick.className='pt-pick';
+    pts.forEach(pt=>{
+      const b2=document.createElement('button');b2.className='l2-pick-btn';b2.textContent=ptLbl(pt);
+      b2.onclick=()=>{
+        box.querySelectorAll('.l2-pick-btn').forEach(x=>x.classList.remove('sel'));
+        b2.classList.add('sel');coord.textContent=ptLbl(pt);
+        if(id==='l2boxP')l2P=pt;else l2Q=pt;
+        if(l2P&&l2Q)computeL2Add(a,b);
+      };
+      pick.appendChild(b2);
+    });
+    // Add 𝒪
+    const bO=document.createElement('button');bO.className='l2-pick-btn';bO.textContent='𝒪';
+    bO.onclick=()=>{box.querySelectorAll('.l2-pick-btn').forEach(x=>x.classList.remove('sel'));bO.classList.add('sel');coord.textContent='𝒪';if(id==='l2boxP')l2P={x:null,y:null};else l2Q={x:null,y:null};if(l2P&&l2Q)computeL2Add(a,b);};
+    pick.appendChild(bO);
+    box.appendChild(lbl);box.appendChild(coord);box.appendChild(pick);
+    return box;
+  };
+  row.innerHTML='';
+  row.appendChild(mkBox('l2boxP','Point P','#00f5c4'));
+  const plus=document.createElement('div');plus.className='sb-plus';plus.textContent='+';row.appendChild(plus);
+  row.appendChild(mkBox('l2boxQ','Point Q','#a855f7'));
+  document.getElementById('l2comp').innerHTML=`<span style="color:var(--dim)">← Sélectionne P et Q ci-dessus</span>`;
+  const res=document.getElementById('l2res');if(res)res.style.display='none';
+}
+
+function computeL2Add(a,b){
+  const P=l2P,Q=l2Q,p=l2p,comp=document.getElementById('l2comp'),res=document.getElementById('l2res');
+  if(!P||!Q){comp.innerHTML=`<span style="color:var(--dim)">Sélectionne P et Q</span>`;return;}
+  // Case: P or Q = O
+  if(P.x===null){comp.innerHTML=`<span class="cb-step">𝒪 + Q = Q</span><br><span class="cb-res">Résultat : ${ptLbl(Q)}</span>`;if(res){res.style.display='block';document.getElementById('l2resval').textContent=ptLbl(Q);}return;}
+  if(Q.x===null){comp.innerHTML=`<span class="cb-step">P + 𝒪 = P</span><br><span class="cb-res">Résultat : ${ptLbl(P)}</span>`;if(res){res.style.display='block';document.getElementById('l2resval').textContent=ptLbl(P);}return;}
+  // Case: P = -Q
+  if(P.x===Q.x&&md(P.y+Q.y,p)===0){comp.innerHTML=`<span class="cb-step">x_P = x_Q et y_P + y_Q ≡ 0 (mod ${p})</span><br><span class="cb-step">→ P et Q sont des inverses</span><br><span class="cb-res">P + Q = 𝒪</span>`;if(res){res.style.display='block';document.getElementById('l2resval').textContent='𝒪';}return;}
+  let html='';let lambda;
+  const isDouble=P.x===Q.x&&P.y===Q.y;
+  if(isDouble){
+    // Tangente
+    const num=md(3*P.x*P.x+a,p);const den=md(2*P.y,p);
+    if(den===0){comp.innerHTML=`<span class="cb-step">2P : y_P = 0 → tangente verticale</span><br><span class="cb-res">2P = 𝒪</span>`;if(res){res.style.display='block';document.getElementById('l2resval').textContent='𝒪';}return;}
+    const denInv=modInv(den,p);lambda=md(num*denInv,p);
+    html+=`<span class="cb-step">Doublement P = Q = ${ptLbl(P)}</span><br>`;
+    html+=`<span class="cb-step">λ = (3·${P.x}²+${a})·(2·${P.y})⁻¹ mod ${p}</span><br>`;
+    html+=`<span class="cb-step">  = ${num}·${den}⁻¹ mod ${p}</span><br>`;
+    html+=`<span class="cb-step">  ${den}⁻¹ = ${denInv} (car ${den}·${denInv}=${den*denInv}≡${md(den*denInv,p)})</span><br>`;
+    html+=`<span class="cb-val">  λ = ${md(num*denInv,p)}</span><br>`;
+  } else {
+    const num=md(Q.y-P.y,p);const den=md(Q.x-P.x,p);
+    const denInv=modInv(den,p);lambda=md(num*denInv,p);
+    html+=`<span class="cb-step">P = ${ptLbl(P)},  Q = ${ptLbl(Q)}</span><br>`;
+    html+=`<span class="cb-step">λ = (${Q.y}−${P.y})·(${Q.x}−${P.x})⁻¹ mod ${p}</span><br>`;
+    html+=`<span class="cb-step">  = ${num}·${den}⁻¹ mod ${p}</span><br>`;
+    html+=`<span class="cb-step">  ${den}⁻¹ = ${denInv} (car ${den}·${denInv}≡${md(den*denInv,p)} mod ${p})</span><br>`;
+    html+=`<span class="cb-val">  λ = ${lambda}</span><br>`;
+  }
+  const xR=md(lambda*lambda-P.x-Q.x,p);
+  const yR=md(lambda*(P.x-xR)-P.y,p);
+  html+=`<span class="cb-step">x_R = ${lambda}²−${P.x}−${Q.x} = ${lambda*lambda}-${P.x+Q.x} = ${lambda*lambda-P.x-Q.x} ≡ ${xR} (mod ${p})</span><br>`;
+  html+=`<span class="cb-step">y_R = ${lambda}·(${P.x}−${xR})−${P.y} ≡ ${yR} (mod ${p})</span><br>`;
+  html+=`<span class="cb-res">P + Q = (${xR}, ${yR})</span>`;
+  comp.innerHTML=html;
+  if(res){res.style.display='block';document.getElementById('l2resval').textContent=`(${xR}, ${yR})`;}
+}
+
+// ══════ MODE 4 — ORACLE ══════
+const EC_DB=[
+  {id:'E11a1',name:'E11a1',label:'Cond. 11 — rang 0',eq:'y²+y=x³−x²',conductor:11,rank:0,sign:'−1',ap:{2:-2,3:-1,5:1,7:-2,11:0,13:4,17:-2,19:0,23:-1,29:0,31:7,37:-8},qexp:[0,1,-2,-1,2,1,2,-2,0,-2,-2,0,-2,4,4,-1,-4,2,4,0],label_form:'f ∈ S₂(Γ₀(11))',lseries:'L(f,s) = Σ aₙn⁻ˢ',cm:false,story:'La plus petite courbe elliptique (rang 0). Wiles l\'a utilisée comme cas test pour le dernier théorème de Fermat.',lf_short:'L(E,1) ≈ 0.2538 ≠ 0 : rang 0. Équation fonctionnelle Λ(E,2−s) = −Λ(E,s) (ε=−1). Produit eulérien : ∏ₚ(1−aₚp⁻ˢ+p¹⁻²ˢ)⁻¹, convergent pour Re(s)>3/2.',fi:[{icon:'📐',t:'S₂(Γ₀(11)) — dim 1',d:'Unique forme propre pour ce niveau. N=11 est le plus petit conducteur possible sur ℚ.'},{icon:'🔗',t:'Wiles 1995',d:'E11a1 est la courbe modulaire la plus simple. L(E,s)=L(f,s) est le cœur du théorème de modularité.'}]},
+  {id:'E37a1',name:'E37a1',label:'Cond. 37 — rang 1',eq:'y²+y=x³−x²−7x',conductor:37,rank:1,sign:'+1',ap:{2:0,3:-2,5:0,7:-2,11:0,13:6,17:0,19:-4,23:-4,29:2,31:-4,37:0},qexp:[0,1,0,-2,0,0,2,-2,0,1,0,0,0,4,-2,0,0,-4,2,-4],label_form:'f ∈ S₂(Γ₀(37))',lseries:'L(f,s), zéro d\'ordre 1 en s=1',cm:false,story:'Courbe préférée de Birch & Swinnerton-Dyer. Rang 1, générateur P=(0,0).',lf_short:'L(E,1)=0 mais L\'(E,1)≈0.153≠0 : zéro simple, rang 1. Signe ε=+1, Λ(E,2−s)=+Λ(E,s). La dérivée en s=1 est reliée à la hauteur de Néron-Tate du générateur.',fi:[{icon:'🌟',t:'Courbe de Birch',d:'Favorite de Birch & Swinnerton-Dyer dans leurs calculs des années 1960. L\'(E,1)≠0 a motivé la conjecture BSD.'},{icon:'📍',t:'Générateur P=(0,0)',d:'E(ℚ)≅ℤ, engendré par P=(0,0). La hauteur ĥ(P)≈0.051 détermine L\'(E,1).'}]},
+  {id:'E32a2',name:'E32a2',label:'Cond. 32 — CM par ℤ[i]',eq:'y²=x³−x',conductor:32,rank:0,sign:'+1',ap:{2:0,3:0,5:2,7:0,11:0,13:6,17:2,19:0,23:0,29:-2,31:0,37:-6},qexp:[0,1,0,0,-2,2,0,0,0,1,0,0,0,2,-2,0,-4,2,0,-4],label_form:'f ∈ S₂(Γ₀(32)), CM par ℤ[i]',lseries:'L(E,s)=L(ψ,s)·L(ψ̄,s)',cm:'ℤ[i]',story:'Courbe à multiplication complexe par ℤ[i]. j=1728. aₚ=0 pour p≡3(mod 4).',lf_short:'L se factorise : L(E,s)=L(ψ,s)·L(ψ̄,s), ψ caractère de Hecke de ℚ(i). L(E,1)≈1.769≠0. aₚ=0 pour p inerte dans ℤ[i] (p≡3 mod 4).',fi:[{icon:'🔮',t:'CM par ℤ[i]',d:'aₚ=0 si p≡3(4). Pour p=a²+b²≡1(4) : aₚ=2a. Signature de la multiplication complexe.'},{icon:'🔢',t:'j=1728',d:'Point CM canonique de ℤ[i]. Toute courbe y²=x³+ax a j=1728.'}]},
+  {id:'E27a1',name:'E27a1',label:'Cond. 27 — CM par ℤ[ω]',eq:'y²=x³+1',conductor:27,rank:0,sign:'+1',ap:{2:0,3:0,5:0,7:-2,11:0,13:4,17:0,19:-2,23:0,29:0,31:4,37:2},qexp:[0,1,0,0,0,0,0,-2,0,1,0,0,0,4,0,0,0,0,0,-2],label_form:'f ∈ S₂(Γ₀(27)), CM par ℤ[ω]',lseries:'L(E,s)=L(ψ,s)·L(ψ̄,s)',cm:'ℤ[ω]',story:'CM par ℤ[ω] (entiers d\'Eisenstein). j=0. Torsion ℤ/6ℤ.',lf_short:'L(E,s)=L(ψ,s)·L(ψ̄,s), ψ de ℚ(√−3). L(E,1)≈1.082≠0 (rang 0). aₚ=0 pour p≡2(mod 3) (inerte dans ℤ[ω]).',fi:[{icon:'🔮',t:'CM par ℤ[ω]',d:'aₚ=0 si p≡2(3). Pour p=a²−ab+b²≡1(3) : aₚ=2a. Loi de décomposition dans ℚ(√−3).'},{icon:'🎯',t:'Torsion ℤ/6ℤ',d:'6 points rationnels de torsion. Théorème de Mazur : 15 groupes de torsion possibles sur ℚ.'}]},
+  {id:'E389a1',name:'E389a1',label:'Cond. 389 — rang 2',eq:'y²+y=x³+x²−2x',conductor:389,rank:2,sign:'−1',ap:{2:0,3:1,5:2,7:-4,11:0,13:-2,17:-2,19:4,23:0,29:-6,31:-8,37:2},qexp:[0,1,0,1,-2,2,0,-4,0,1,-2,0,-2,-2,0,4,4,-2,2,-4],label_form:'f ∈ S₂(Γ₀(389))',lseries:'L(f,s), zéro d\'ordre 2 en s=1',cm:false,story:'Première courbe de rang 2 complètement analysée. Signe ε=−1 force un zéro impair.',lf_short:'L(E,1)=L\'(E,1)=0, L\'\'(E,1)≠0 : zéro double, rang 2. ε=−1 impose ordre impair ≥1 ; le rang pair 2 force l\'ordre ≥2. L\'\'(E,1)/2 est relié au régulateur 2×2 de Néron-Tate.',fi:[{icon:'📐',t:'S₂(Γ₀(389)) — dim 32',d:'Une seule des 32 formes propres correspond à E389a1. Les autres engendrent des variétés abéliennes de dim≥2.'},{icon:'🏗️',t:'Régulateur 2×2',d:'R=det[ĥ(Pᵢ,Pⱼ)]₂ₓ₂. BSD dit L\'\'(E,1)/2=Ω·R·|Ш|, vérifié numériquement.'}]},
+];
+
+let m4anim=null;
+function initMode4(){
+  document.getElementById('m4pill').textContent='Choisir ↓';
+  document.getElementById('m4empty').style.display='block';
+  document.getElementById('m4cnt').style.display='none';
+  document.getElementById('m4canvasWrap').style.display='none';
+  const grid=document.getElementById('m4grid');grid.innerHTML='';
+  EC_DB.forEach(ec=>{const c=document.createElement('div');c.className='curve-card';c.id='cc_'+ec.id;c.innerHTML=`<div class="cc-name">▸ ${ec.name}</div><div class="cc-eq">${ec.eq}</div><div><span class="cc-tag">N=${ec.conductor}</span><span class="cc-tag">rang ${ec.rank}</span>${ec.cm?'<span class="cc-tag" style="color:var(--gold)">CM</span>':''}</div>`;c.onclick=()=>selectCurve(ec);grid.appendChild(c);});
+}
+function selectCurve(ec){document.querySelectorAll('.curve-card').forEach(c=>c.classList.remove('selected'));document.getElementById('cc_'+ec.id).classList.add('selected');document.getElementById('m4pill').textContent=ec.name;document.getElementById('m4canvasWrap').style.display='block';initM4Canvas(ec);displayMF(ec);}
+function initM4Canvas(ec){
+  const cv=document.getElementById('cvs4'),dpr=Math.min(devicePixelRatio||1,2),W=cv.parentElement.clientWidth||320,H=120;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.width=W+'px';cv.style.height=H+'px';
+  const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);
+  if(m4anim)cancelAnimationFrame(m4anim);let t=0;
+  (function loop(){if(curScreen!=='mode4')return;t+=.016;drawM4(ctx,ec,W,H,t);m4anim=requestAnimationFrame(loop);})();
+}
+function drawM4(ctx,ec,W,H,t){
+  ctx.fillStyle='#07090f';ctx.fillRect(0,0,W,H);
+  const c=ec.qexp.slice(1,17),mx=Math.max(...c.map(Math.abs),1),bw=(W-28)/c.length,mid=H/2;
+  ctx.strokeStyle='#1a2035';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(14,mid);ctx.lineTo(W-14,mid);ctx.stroke();
+  c.forEach((a,i)=>{const bh=(Math.abs(a)/mx)*(H/2-14),x=14+i*bw+1.5,col=a>0?'#00f5c4':a<0?'#ff4466':'#3a4a6a';const act=i===Math.floor(t*1.3)%c.length;ctx.fillStyle=col+(act?'cc':'44');if(a!==0){const y=a>0?mid-bh:mid;ctx.fillRect(x,y,bw-2.5,bh);}ctx.fillStyle=col;if(a!==0)ctx.fillRect(x,a>0?mid-bh:mid+bh-1,bw-2.5,1.5);if(act&&a!==0){ctx.save();ctx.shadowColor=col;ctx.shadowBlur=9;ctx.fillStyle=col+'99';ctx.fillRect(x,a>0?mid-bh:mid,bw-2.5,bh);ctx.restore();ctx.fillStyle=col;ctx.font='bold 7px Space Mono,monospace';ctx.textAlign='center';ctx.fillText(a,x+(bw-2.5)/2,a>0?mid-bh-4:mid+bh+9);}ctx.fillStyle='#2a3a5a';ctx.font='7px Space Mono,monospace';ctx.textAlign='center';ctx.fillText(i+1,x+(bw-2.5)/2,H-2);});
+  ctx.fillStyle='#3a4a6a';ctx.font='7px Space Mono,monospace';ctx.textAlign='left';ctx.fillText('f(τ) = Σ aₙqⁿ',14,10);
+}
+function displayMF(ec){
+  document.getElementById('m4empty').style.display='none';
+  const cnt=document.getElementById('m4cnt');cnt.style.display='block';
+  const primes=[2,3,5,7,11,13,17,19,23,29,31,37];
+  const apRows=primes.map(p=>{const a=ec.ap[p],bad=ec.conductor%p===0,cls=bad?'ap-bad':a>0?'ap-pos':a<0?'ap-neg':'ap-zero';return`<td class="${cls}">${bad?a+'*':a}</td>`;});
+  const qc=ec.qexp;let qstr='';
+  for(let n=1;n<=13;n++){const a=qc[n];if(a===undefined)break;if(a===0)continue;const abs=Math.abs(a),sign=n===1&&a>0?'':(a>0?' + ':' − '),sc=a>0?'qterm-pos':'qterm-neg';let tok=`<span class="${sc}">${sign}</span>`;if(abs!==1||n===1)tok+=`<span class="${sc}">${abs}</span>`;tok+=n===1?'<span class="qterm-q">q</span>':`<span class="qterm-q">q<sup>${n}</sup></span>`;qstr+=tok;}
+  qstr+=` <span class="qexp-label">+…</span>`;
+  const fi=(ec.fi||[]).map(f=>`<div class="form-info-row"><span class="fi-icon">${f.icon}</span><span class="fi-text"><strong>${f.t}</strong><span>${f.d}</span></span></div>`).join('');
+  cnt.innerHTML=`
+  <div class="mf-reveal mf-section">
+    <div class="mf-section-title">① Identité modulaire</div>
+    <div class="mf-identity tappable" onclick="toggleFI(this)"><span class="tap-hint">ⓘ infos</span><div class="mf-label">Espace</div><div class="mf-val">${ec.label_form}</div><div class="form-info-panel"><div class="form-info-body">${fi}</div></div></div>
+    <div class="mf-grid-2">
+      <div class="mf-box"><div class="mf-label">Conducteur N</div><div class="mf-val" style="color:var(--red)">${ec.conductor}</div></div>
+      <div class="mf-box"><div class="mf-label">Poids k</div><div class="mf-val" style="color:var(--purp)">2</div></div>
+      <div class="mf-box"><div class="mf-label">Rang r</div><div class="mf-val" style="color:var(--cyan)">${ec.rank}</div></div>
+      <div class="mf-box"><div class="mf-label">Signe ε</div><div class="mf-val" style="color:var(--gold)">${ec.sign}</div></div>
+    </div>
+    ${ec.cm?`<div class="mf-identity" style="border-left:3px solid var(--gold)"><div class="mf-label">Multiplication complexe</div><div class="mf-val" style="color:var(--gold);font-size:.78rem">${ec.cm}</div></div>`:''}
+  </div>
+  <div class="mf-reveal mf-section">
+    <div class="mf-section-title">② q-expansion</div>
+    <div class="mf-formula-block"><div class="mf-formula-comment">f(τ) = (q = e²πiτ)</div><div class="qexp-wrap">${qstr}</div></div>
+  </div>
+  <div class="mf-reveal mf-section">
+    <div class="mf-section-title">③ Coefficients aₚ</div>
+    <div class="ap-table-wrap"><table class="ap-table"><thead><tr><th>p</th>${primes.map(p=>`<th>${p}</th>`).join('')}</tr></thead><tbody><tr><th>aₚ</th>${apRows.join('')}</tr></tbody></table></div>
+    <div class="mf-footnote">* mauvaise réduction &nbsp;·&nbsp; <span style="color:var(--purp)">|aₚ|≤2√p</span></div>
+  </div>
+  <div class="mf-reveal mf-section">
+    <div class="mf-section-title">④ Fonction L</div>
+    <button class="lf-btn" onclick="toggleLF(this)"><span>📈</span><span>Afficher L(E, s)</span></button>
+    <div class="lf-text-block" style="display:none"><div class="lf-text-header">${ec.lseries}</div><p>${ec.lf_short}</p></div>
+  </div>
+  <div class="mf-reveal mf-section">
+    <div class="mf-section-title">⑤ Histoire</div>
+    <div class="story-card">${ec.story}</div>
+  </div>`;
+}
+function toggleFI(el){const p=el.querySelector('.form-info-panel'),open=p.classList.toggle('open');el.classList.toggle('expanded',open);const h=el.querySelector('.tap-hint');if(h)h.textContent=open?'ⓘ fermer':'ⓘ infos';}
+function toggleLF(btn){const b=btn.nextElementSibling,open=b.style.display!=='none';b.style.display=open?'none':'block';btn.classList.toggle('open',!open);btn.querySelector('span:last-child').textContent=open?'Afficher L(E, s)':'Masquer L(E, s)';}
+
+// ══════ INIT ══════
+document.getElementById('bestScore').textContent=bestScore;
+</script>
+
+</body>
+</html>
